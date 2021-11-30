@@ -1,5 +1,8 @@
 # Getting Started
 
+### login API
+curl -XGET -H "Content-Type: application/json" http://localhost:8080/v1/user/login -d '{"userId":"my@email.org", "password":"mypass"}'
+
 ### Reference Documentation
 For further reference, please consider the following sections:
 
