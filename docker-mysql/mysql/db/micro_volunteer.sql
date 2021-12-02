@@ -24,9 +24,10 @@ CREATE TABLE IF NOT EXISTS `volunteerdb`.`Users` (
   `user_id` VARCHAR(64) NOT NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `name` VARCHAR(64) NULL,
-  `email` VARCHAR(256) NULL,
-  `password` VARCHAR(512) NULL,
+  `name` VARCHAR(64) NOT NULL,
+  `email` VARCHAR(256) NOT NULL,
+  `password` VARCHAR(512) NOT NULL,
+  `status` INT NOT NULL,
   PRIMARY KEY (`user_id`))
 ENGINE = InnoDB;
 
@@ -44,9 +45,9 @@ CREATE TABLE IF NOT EXISTS `volunteerdb`.`VolunteerHistory` (
   `handicap_level` INT NULL,
   `satisfaction` INT NULL,
   `thanks_comment` VARCHAR(256) NULL,
-  `status` INT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `status` INT NOT NULL,
   PRIMARY KEY (`history_id`),
-  INDEX `user_id_idx` (`volunteer_id` ASC) VISIBLE,
+--  INDEX `user_id_idx` (`volunteer_id` ASC) VISIBLE,
   INDEX `handicapped_id_idx` (`handicapped_id` ASC) VISIBLE,
   CONSTRAINT `volunteer_id`
     FOREIGN KEY (`volunteer_id`)
@@ -72,7 +73,7 @@ CREATE TABLE IF NOT EXISTS `volunteerdb`.`VolunteerSummary` (
   `handicap_type` INT NULL,
   `thanks_num` INT NULL,
   PRIMARY KEY (`summary_id`),
-  INDEX `user_id_idx` (`volunteer_id` ASC) VISIBLE,
+--  INDEX `user_id_idx` (`volunteer_id` ASC) VISIBLE,
   CONSTRAINT `volunteer_id`
     FOREIGN KEY (`volunteer_id`)
     REFERENCES `volunteerdb`.`Users` (`user_id`)
@@ -88,13 +89,8 @@ CREATE TABLE IF NOT EXISTS `volunteerdb`.`SnsId` (
   `user_id` VARCHAR(64) NOT NULL,
   `created_at` DATETIME NOT NULL,
   `sns_id` VARCHAR(64) NOT NULL,
-  `sns_type` INT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  INDEX `user_id_idx` (`user_id` ASC) VISIBLE,
-  CONSTRAINT `user_id`
-    FOREIGN KEY (`user_id`)
-    REFERENCES `volunteerdb`.`Users` (`user_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+  `sns_type` INT NOT NULL,
+  INDEX `user_id_idx` (`user_id` ASC) VISIBLE)
 ENGINE = InnoDB;
 
 
@@ -121,22 +117,7 @@ CREATE TABLE IF NOT EXISTS `volunteerdb`.`HandicapInfo` (
   PRIMARY KEY (`handcapinfo_id`),
   INDEX `handicapped_id_idx` (`handicapped_id` ASC) VISIBLE,
   INDEX `handicap_type_idx` (`handicap_type` ASC) VISIBLE,
-  INDEX `handicap_level_idx` (`handicap_level` ASC) VISIBLE,
-  CONSTRAINT `handicapped_id`
-    FOREIGN KEY (`handicapped_id`)
-    REFERENCES `volunteerdb`.`Users` (`user_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `handicap_type`
-    FOREIGN KEY (`handicap_type`)
-    REFERENCES `volunteerdb`.`HandicapMaster` (`handicap_type`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `handicap_level`
-    FOREIGN KEY (`handicap_level`)
-    REFERENCES `volunteerdb`.`HandicapMaster` (`handicap_type`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+  INDEX `handicap_level_idx` (`handicap_level` ASC) VISIBLE)
 ENGINE = InnoDB;
 
 
@@ -148,12 +129,7 @@ CREATE TABLE IF NOT EXISTS `volunteerdb`.`Session` (
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `user_id` VARCHAR(64) NULL,
   PRIMARY KEY (`session_id`),
-  INDEX `user_id_idx` (`user_id` ASC) VISIBLE,
-  CONSTRAINT `user_id`
-    FOREIGN KEY (`user_id`)
-    REFERENCES `volunteerdb`.`Users` (`user_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+  INDEX `user_id_idx` (`user_id` ASC) VISIBLE)
 ENGINE = InnoDB;
 
 
@@ -169,17 +145,7 @@ CREATE TABLE IF NOT EXISTS `volunteerdb`.`Help` (
   `status` INT NULL COMMENT '助けを呼ぶ',
   PRIMARY KEY (`help_id`),
   INDEX `handicapped_id_idx` (`handicapped_id` ASC) VISIBLE,
-  INDEX `volunteer_id_idx` (`volunteer_id` ASC) VISIBLE,
-  CONSTRAINT `handicapped_id`
-    FOREIGN KEY (`handicapped_id`)
-    REFERENCES `volunteerdb`.`Users` (`user_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `volunteer_id`
-    FOREIGN KEY (`volunteer_id`)
-    REFERENCES `volunteerdb`.`Users` (`user_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+  INDEX `volunteer_id_idx` (`volunteer_id` ASC) VISIBLE)
 ENGINE = InnoDB;
 
 
@@ -194,12 +160,7 @@ CREATE TABLE IF NOT EXISTS `volunteerdb`.`CheckIn` (
   `user_id` VARCHAR(64) NULL,
   `sojourn_time` INT NULL,
   PRIMARY KEY (`checkin_id`),
-  INDEX `user_id_idx` (`user_id` ASC) VISIBLE,
-  CONSTRAINT `user_id`
-    FOREIGN KEY (`user_id`)
-    REFERENCES `volunteerdb`.`Users` (`user_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+  INDEX `user_id_idx` (`user_id` ASC) VISIBLE)
 ENGINE = InnoDB;
 
 
@@ -212,12 +173,7 @@ CREATE TABLE IF NOT EXISTS `volunteerdb`.`MyGeometry` (
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `location` GEOMETRY NOT NULL,
   `status` INT NOT NULL,
-  PRIMARY KEY (`user_id`),
-  CONSTRAINT `user_id`
-    FOREIGN KEY (`user_id`)
-    REFERENCES `volunteerdb`.`Users` (`user_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+  PRIMARY KEY (`user_id`))
 ENGINE = InnoDB;
 
 
