@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.microvolunteer.platform.dao.mapper.TokenMapper">
+    <insert id="registerToken">
+        insert into Session(session_id,user_id)
+        values(#{session_id},#{user_id})
+    </insert>
+</mapper>
