@@ -25,4 +25,8 @@ public class TokenService {
         );
         return token.toString();
     }
+
+    public String getUserId(String token) {
+        return tokenMapper.getUserId(token);
+    }
 }

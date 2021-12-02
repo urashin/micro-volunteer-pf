@@ -130,7 +130,10 @@ public class Controller {
     @PostMapping("/matching/checkin")
     @ResponseBody
     public CheckInResponse checkin(@RequestBody CheckInRequest checkInRequest){
-        logger.info("CheckIn API: {}", checkInRequest.getUserId());
+        logger.info("CheckIn API: {}", checkInRequest.getToken());
+        //String user_id = tokenService.getUserId(checkInRequest.getToken());
+        //logger.info("CheckIn API user_id : {}", user_id);
+
         // tokenからuser_idを取得
         // user_idと位置座標をMyGEOMETRYテーブルに登録
         return CheckInResponse.builder().result("OK").build();
@@ -142,7 +145,7 @@ public class Controller {
     @PostMapping("/matching/help")
     @ResponseBody
     public HelpResponse help(@RequestBody HelpRequest helpRequest){
-        logger.info("CheckIn API: {}", helpRequest.getUserId());
+        logger.info("CheckIn API: {}", helpRequest.toString());
         // 対象ボランティアの抽出（マッチング）
         // 対象ボランティアへのpush通知(python APIを使う)
         return HelpResponse.builder().result("OK").build();

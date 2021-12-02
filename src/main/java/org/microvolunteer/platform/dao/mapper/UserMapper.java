@@ -7,5 +7,4 @@ import org.microvolunteer.platform.dto.UserPropertyDto;
 public interface UserMapper {
     UserPropertyDto getUserProperty(String user_id);
     void insertUserProperty(UserPropertyDto userProperty);
-    String selectTest(String user_id);
 }

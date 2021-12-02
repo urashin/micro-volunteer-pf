@@ -7,4 +7,9 @@
         insert into Session(session_id,user_id)
         values(#{session_id},#{user_id})
     </insert>
+    <sql id="getUserId">
+        select user_id
+        from SESSION
+        where session_id = #{token}
+    </sql>
 </mapper>
