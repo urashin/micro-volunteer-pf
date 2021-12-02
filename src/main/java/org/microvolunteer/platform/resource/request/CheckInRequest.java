@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class CheckInRequest {
-    private String token;  // request header のtokenから取得するよう変更
+    private String token;
     private String x_geometry;
     private String y_geometry;
 }
