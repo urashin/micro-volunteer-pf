@@ -1,14 +1,17 @@
 package org.microvolunteer.platform.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.microvolunteer.platform.dto.GeometryDto;
 import org.microvolunteer.platform.resource.request.*;
 import org.microvolunteer.platform.resource.response.*;
+import org.microvolunteer.platform.service.MatchingService;
 import org.microvolunteer.platform.service.SnsIdRegisterService;
 import org.microvolunteer.platform.service.TokenService;
 import org.microvolunteer.platform.service.UsersService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.geo.Point;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -18,16 +21,19 @@ import org.springframework.web.bind.annotation.*;
 public class Controller {
     private Logger logger = LoggerFactory.getLogger(Controller.class);
     private UsersService usersService;
+    private MatchingService matchingService;
     private TokenService tokenService;
     private SnsIdRegisterService snsIdRegisterService;
 
     @Autowired
     public Controller(
-             UsersService usersService
-            ,TokenService tokenService
-            ,SnsIdRegisterService snsIdRegisterService
+              UsersService usersService
+            , MatchingService matchingService
+            , TokenService tokenService
+            , SnsIdRegisterService snsIdRegisterService
     ) {
         this.usersService = usersService;
+        this.matchingService = matchingService;
         this.tokenService = tokenService;
         this.snsIdRegisterService = snsIdRegisterService;
     }
@@ -131,11 +137,20 @@ public class Controller {
     @ResponseBody
     public CheckInResponse checkin(@RequestBody CheckInRequest checkInRequest){
         logger.info("CheckIn API: {}", checkInRequest.getToken());
-        //String user_id = tokenService.getUserId(checkInRequest.getToken());
-        //logger.info("CheckIn API user_id : {}", user_id);
+        String user_id = tokenService.getUserId(checkInRequest.getToken());
+        GeometryDto location = GeometryDto.builder().xGeometry(checkInRequest.getX_geometry()).yGeometry(checkInRequest.getY_geometry()).build();
+        matchingService.updateMyGeometry(user_id,location,1);
+        logger.info("CheckIn API user_id : {}", user_id);
+        return CheckInResponse.builder().result("OK").build();
+    }
 
-        // tokenからuser_idを取得
-        // user_idと位置座標をMyGEOMETRYテーブルに登録
+    @PostMapping("/matching/checkout")
+    @ResponseBody
+    public CheckInResponse checkout(@RequestBody CheckInRequest checkInRequest){
+        logger.info("CheckIn API: {}", checkInRequest.getToken());
+        String user_id = tokenService.getUserId(checkInRequest.getToken());
+        GeometryDto location = GeometryDto.builder().xGeometry(checkInRequest.getX_geometry()).yGeometry(checkInRequest.getY_geometry()).build();
+        matchingService.updateMyGeometry(user_id,location,0);
         return CheckInResponse.builder().result("OK").build();
     }
 
