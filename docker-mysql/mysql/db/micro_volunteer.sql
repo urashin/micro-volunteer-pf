@@ -73,7 +73,6 @@ CREATE TABLE IF NOT EXISTS `volunteerdb`.`VolunteerSummary` (
   `handicap_type` INT NULL,
   `thanks_num` INT NULL,
   PRIMARY KEY (`summary_id`),
---  INDEX `user_id_idx` (`volunteer_id` ASC) VISIBLE,
   CONSTRAINT `volunteer_id`
     FOREIGN KEY (`volunteer_id`)
     REFERENCES `volunteerdb`.`Users` (`user_id`)
@@ -87,10 +86,9 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `volunteerdb`.`SnsId` (
   `user_id` VARCHAR(64) NOT NULL,
-  `created_at` DATETIME NOT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `sns_id` VARCHAR(64) NOT NULL,
-  `sns_type` INT NOT NULL,
-  INDEX `user_id_idx` (`user_id` ASC) VISIBLE)
+  `sns_type` INT NOT NULL)
 ENGINE = InnoDB;
 
 
@@ -100,8 +98,7 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `volunteerdb`.`HandicapMaster` (
   `handicap_type` INT NOT NULL,
   `handicap_level` INT NOT NULL,
-  `comment` VARCHAR(512) NULL,
-  PRIMARY KEY (`handicap_type`, `handicap_level`))
+  `comment` VARCHAR(512) NULL)
 ENGINE = InnoDB;
 
 

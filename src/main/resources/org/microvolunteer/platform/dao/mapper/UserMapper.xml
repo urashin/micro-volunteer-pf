@@ -16,19 +16,11 @@
     <insert id="insertUserProperty">
         insert into Users(user_id,name,email,password,status)
         values(
-               #{userProperty.user_id}
-               ,#{userProperty.name}
-               ,#{userProperty.email}
-               ,#{userProperty.password}
-               ,${userProperty.status}
+               #{user_id}
+               ,#{name}
+               ,#{email}
+               ,#{password}
+               ,${status}
               )
     </insert>
-    <sql id="selectTest">
-        select
-            user_id
-        from
-            Users
-        where
-            user_id = Users.user_id
-    </sql>
 </mapper>

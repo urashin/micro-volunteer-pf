@@ -1,27 +1,22 @@
 package org.microvolunteer.platform.service;
 
-import org.microvolunteer.platform.dao.mapper.SnsRegisterMaper;
-import org.microvolunteer.platform.dao.mapper.TokenMapper;
-import org.microvolunteer.platform.dto.SnsRegisterDto;
+import org.microvolunteer.platform.dao.mapper.SnsRegisterMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class SnsIdRegisterService {
-    private SnsRegisterMaper snsRegisterMaper;
-    private TokenMapper tokenMapper;
+    private SnsRegisterMapper snsRegisterMapper;
 
     @Autowired
     public SnsIdRegisterService(
-            SnsRegisterMaper snsRegisterMaper,
-            TokenMapper tokenMapper
+            SnsRegisterMapper snsRegisterMapper
             ) {
-        this.snsRegisterMaper = snsRegisterMaper;
-        this.tokenMapper = tokenMapper;
+        this.snsRegisterMapper = snsRegisterMapper;
     }
 
-    public void registerSnsId(String snsId, String user_id) {
-        snsRegisterMaper.SnsIdRegister(snsId, user_id);
+    public void registerSnsId(String sns_id, String user_id, Integer sns_type) {
+        snsRegisterMapper.registerSnsId(sns_id, user_id, sns_type);
         return;
     }
 }

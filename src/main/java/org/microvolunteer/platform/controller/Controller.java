@@ -28,6 +28,7 @@ public class Controller {
             ,SnsIdRegisterService snsIdRegisterService
     ) {
         this.usersService = usersService;
+        this.tokenService = tokenService;
         this.snsIdRegisterService = snsIdRegisterService;
     }
 
@@ -73,7 +74,7 @@ public class Controller {
         String token = tokenService.createToken(user_id);
 
         // 3) SnsId tableにuser_id&sns_idのペアで登録し、紐付け完了
-        snsIdRegisterService.registerSnsId(snsRegisterRequest.getSns_id(),user_id);
+        snsIdRegisterService.registerSnsId(snsRegisterRequest.getSns_id(),user_id, snsRegisterRequest.getSns_type());
         return SnsRegisterResponse.builder().token(token).build();
         // Usersテーブルにuser_id & statusのみinsertする（他の要素はonetimeurl発行→登録
     }

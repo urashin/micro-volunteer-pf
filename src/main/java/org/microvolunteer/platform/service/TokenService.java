@@ -1,8 +1,6 @@
 package org.microvolunteer.platform.service;
 
-import org.microvolunteer.platform.dao.mapper.SnsRegisterMaper;
 import org.microvolunteer.platform.dao.mapper.TokenMapper;
-import org.microvolunteer.platform.dto.UserPropertyDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

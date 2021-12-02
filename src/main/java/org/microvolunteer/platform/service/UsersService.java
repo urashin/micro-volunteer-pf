@@ -16,7 +16,6 @@ public class UsersService {
         this.userMapper = userMapper;
     }
 
-
     public String createUser() {
         UUID uuid = UUID.randomUUID();
         userMapper.insertUserProperty(

@@ -2,15 +2,8 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="org.microvolunteer.platform.dao.mapper.SnsRegisterMaper">
-    <sql id="getUserProperty">
-        select
-            Users.user_id,
-            Users.name,
-            Users.email
-        from
-            Users
-        where
-            user_id = Users.user_id
-    </sql>
+<mapper namespace="org.microvolunteer.platform.dao.mapper.SnsRegisterMapper">
+    <insert id="registerSnsId">
+        insert into SnsId(sns_id, user_id, sns_type) values(#{sns_id},#{user_id},${sns_type})
+    </insert>
 </mapper>
