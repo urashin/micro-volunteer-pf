@@ -4,13 +4,13 @@
 #### 12/4のプレゼンではこれらのAPIを利用したアプリでデモを行います。
 
 ### デモ環境動作確認
-こちらにアクセスし、{"result","OK"}が表示されることを確認してください。こちらのデモ環境は(2021/12/4のみ稼働します)
+こちらにアクセスし、{"result","OK"}が表示されることを確認してください。こちらのデモ環境は(2021/12/3,4のみ稼働します)
 
 http://ec2-54-95-14-86.ap-northeast-1.compute.amazonaws.com:8080/v1/kakunin
 
 
 ### 実行例
-以下の実行例を参考に、[こちら](https://github.com/urashin/micro-volunteer-pf/blob/master/about_api.md)で提供されている機能が実行できます。
+以下の実行例を参考に、[こちら](https://github.com/urashin/micro-volunteer-pf/blob/master/about_api.md) で提供されている機能が実行できます。
 #### sns_register : tokenの取得(LINEアカウントとの紐付けに使います)
 ````
 curl -XGET -H "Content-Type: application/json" http://ec2-54-95-14-86.ap-northeast-1.compute.amazonaws.com:8080/v1/user/sns_register -d '{"sns_id":"XXXXXXXXXSNSIDXXXXXXXXXX", "sns_type":1}'
