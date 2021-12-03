@@ -47,7 +47,6 @@ CREATE TABLE IF NOT EXISTS `volunteerdb`.`VolunteerHistory` (
   `thanks_comment` VARCHAR(256) NULL,
   `status` INT NOT NULL,
   PRIMARY KEY (`history_id`),
---  INDEX `user_id_idx` (`volunteer_id` ASC) VISIBLE,
   INDEX `handicapped_id_idx` (`handicapped_id` ASC) VISIBLE,
   CONSTRAINT `volunteer_id`
     FOREIGN KEY (`volunteer_id`)
@@ -106,12 +105,13 @@ ENGINE = InnoDB;
 -- Table `volunteerdb`.`HandicapInfo`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `volunteerdb`.`HandicapInfo` (
-  `handcapinfo_id` INT NOT NULL,
+  `handcapinfo_id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
   `handicapped_id` VARCHAR(64) NOT NULL,
   `handicap_type` INT NOT NULL,
   `handicap_level` INT NOT NULL,
+  `reliability_th` INT NULL,
+  `severity` INT NULL,
   `comment` VARCHAR(128) NULL,
-  PRIMARY KEY (`handcapinfo_id`),
   INDEX `handicapped_id_idx` (`handicapped_id` ASC) VISIBLE,
   INDEX `handicap_type_idx` (`handicap_type` ASC) VISIBLE,
   INDEX `handicap_level_idx` (`handicap_level` ASC) VISIBLE)

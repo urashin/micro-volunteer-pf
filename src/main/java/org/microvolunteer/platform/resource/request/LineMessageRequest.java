@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class LineMessageRequest {
-    private String snsId;
+    private String sns_id;
     private String message;
 }

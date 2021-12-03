@@ -2,6 +2,7 @@ package org.microvolunteer.platform.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.microvolunteer.platform.dto.GeometryDto;
+import org.microvolunteer.platform.dto.HandicapInfoDto;
 import org.microvolunteer.platform.resource.request.*;
 import org.microvolunteer.platform.resource.response.*;
 import org.microvolunteer.platform.service.MatchingService;
@@ -47,7 +48,7 @@ public class Controller {
     @GetMapping("/user/login")
     @ResponseBody
     public LoginResponse login(@RequestBody LoginRequest loginRequest){
-        logger.info("ログインAPI: {}", loginRequest.getUserId());
+        logger.info("ログインAPI: {}", loginRequest.getUser_id());
 
         return LoginResponse.builder().token("tokenXXXXXXXXXXXXXXXXXXXX").build();
     }
@@ -87,6 +88,7 @@ public class Controller {
 
     /**
      * [4] /user/register APIでemail, password, nameを登録
+     * sns_idもしくはonetimeurlにより、tokenは取得できている状態
      *
      * @param registerRequest
      * @return
@@ -94,40 +96,45 @@ public class Controller {
     @PostMapping("/user/register")
     @ResponseBody
     public RegisterResponse register(@RequestBody RegisterRequest registerRequest){
-        logger.info("sns register API: {}", registerRequest.getEmail());
-        // user_idを生成
-        // x SnsIdテーブルを更新：UPDATE SnsId SET user_id = xxx, sns_id = sss WHERE SnsId.onetimepath = onetimepath;
-        // o SnsIdてーぶるにインサートする
-        // Usersテーブルにuser_id & statusのみinsertする（他の要素はonetimeurl発行→登録
+        logger.info("register API: {}", registerRequest.getEmail());
+        // tokenからuser_idを取得
+        String user_id = tokenService.getUserId(registerRequest.getToken());
+        // email, passwordを登録する
         return RegisterResponse.builder().result("OK").build();
     }
 
     /**
-     * LINE Bot以外の通常のユーザー登録処理
+     * 障害者が適切な手助けを受けられるよう、障害情報を登録するためのAPI
+     *
+     * @param registerRequest
+     * @return
+     */
+    @PostMapping("/user/handicap/register")
+    @ResponseBody
+    public RegisterResponse handicap_register(@RequestBody HandicapRegisterRequest registerRequest){
+        logger.info("handicap register API: {}", registerRequest.getHandicap_level());
+        String user_id = tokenService.getUserId(registerRequest.getToken());
+        HandicapInfoDto handicapInfo = HandicapInfoDto.builder()
+                .handicapped_id(user_id)
+                .reliability_th(registerRequest.getReliability_th())
+                .severity(registerRequest.getSeverity())
+                .handicap_type(registerRequest.getHandicap_type())
+                .handicap_level(registerRequest.getHandicap_level())
+                .comment(registerRequest.getComment())
+                .build();
+        usersService.registerHandicappedInfo(handicapInfo);
+        return RegisterResponse.builder().result("OK").build();
+    }
+
+    /**
+     * LINE Bot以外の通常のユーザー登録処理（今回は対象外）
      * 引数のemailにonetimeurlを送付する（メールサーバたてるなど面倒なので今回は省略）
      */
     @GetMapping("/user/onetimeurl")
     @ResponseBody
     public OnetimeurlResponse onetimeurl(@RequestBody OnetimeurlRequest onetimeurlRequest){
-        logger.info("onetimeurl API: {}", onetimeurlRequest.getSnsId());
-        // LINE(Botの初回発言が -> このAPI: sns_idからonetime_pathを生成し、SnsIdテーブルに記録
         //
-        // LINE -> ID連携するためのページ -> パラメータ：sns_id, ユーザー入力：email&password -> このAPI
-        // tokenからuser_idを取得
-        // sns_id, user_id, sns_typeをSnsIdテーブルへ登録
         return OnetimeurlResponse.builder().onetimeurl("http://tokenXXXXXXXXXXXXXXXXXXXX").build();
-    }
-
-    /**
-     * ★LINE Botコールバック
-     * よくわからなくなってきたので、JohnさんのPython実装におまかせ
-     */
-    public LineMessageResponse lineMessage() {
-        // LINE(Botの初回発言が -> このAPI: sns_idからonetime_pathを生成し、SnsIdテーブルに記録
-        // LINE -> ID連携するためのページ -> パラメータ：sns_id, ユーザー入力：email&password -> このAPI
-        // tokenからuser_idを取得
-        // sns_id, user_id, sns_typeをSnsIdテーブルへ登録
-        return LineMessageResponse.builder().message("コマンドに応じたメッセージを入れる").build();
     }
 
     /**
@@ -160,7 +167,18 @@ public class Controller {
     @PostMapping("/matching/help")
     @ResponseBody
     public HelpResponse help(@RequestBody HelpRequest helpRequest){
-        logger.info("CheckIn API: {}", helpRequest.toString());
+        logger.info("help API: {}", helpRequest.toString());
+        // 障害者の位置情報を更新
+        String user_id = tokenService.getUserId(helpRequest.getToken());
+        GeometryDto location = GeometryDto.builder()
+                .xGeometry(helpRequest.getX_geometry())
+                .yGeometry(helpRequest.getY_geometry())
+                .build();
+        matchingService.updateMyGeometry(user_id,location,1);
+        // 障害者の障害情報を取得
+        HandicapInfoDto handicapInfo = usersService.getHandicappedInfo(user_id);
+        // 障害者情報を取得（ハンディキャップレベル）
+        // matchingService.help();
         // 対象ボランティアの抽出（マッチング）
         // 対象ボランティアへのpush通知(python APIを使う)
         return HelpResponse.builder().result("OK").build();
@@ -192,7 +210,7 @@ public class Controller {
     @PostMapping("/matching/accept")
     @ResponseBody
     public AcceptResponse accept(@RequestBody AcceptRequest acceptRequest){
-        logger.info("accept API: {}", acceptRequest.getHelpId());
+        logger.info("accept API: {}", acceptRequest.getHelp_id());
 
         return AcceptResponse.builder()
                 .helpId(1)
@@ -207,7 +225,7 @@ public class Controller {
     @PostMapping("/evaluate/thanks")
     @ResponseBody
     public ThanksResponse thanks(@RequestBody ThanksRequest thanksRequest){
-        logger.info("thanks API: {}", thanksRequest.getHelpId());
+        logger.info("thanks API: {}", thanksRequest.getHelp_id());
 
         return ThanksResponse.builder()
                 .result("OK")
