@@ -71,6 +71,7 @@ CREATE TABLE IF NOT EXISTS `volunteerdb`.`VolunteerSummary` (
   `volunteer_id` VARCHAR(64) NULL,
   `handicap_type` INT NULL,
   `thanks_num` INT NULL,
+  `reliability_th` INT NULL,
   PRIMARY KEY (`summary_id`))
 ENGINE = InnoDB;
 
@@ -100,7 +101,7 @@ ENGINE = InnoDB;
 -- Table `volunteerdb`.`HandicapInfo`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `volunteerdb`.`HandicapInfo` (
-  `handcapinfo_id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  `handicapinfo_id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
   `handicapped_id` VARCHAR(64) NOT NULL,
   `handicap_type` INT NOT NULL,
   `handicap_level` INT NOT NULL,
@@ -129,11 +130,15 @@ ENGINE = InnoDB;
 -- Table `volunteerdb`.`Help`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `volunteerdb`.`Help` (
-  `help_id` INT NOT NULL,
+  `help_id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `handicapped_id` VARCHAR(64) NULL,
   `volunteer_id` VARCHAR(64) NULL,
+  `location` GEOMETRY NOT NULL,
+  `reliability_th` INT NULL,
+  `severity` INT NULL,
+  `comment` VARCHAR(128),
   `status` INT NULL COMMENT '助けを呼ぶ',
   PRIMARY KEY (`help_id`),
   INDEX `handicapped_id_idx` (`handicapped_id` ASC) VISIBLE,
@@ -145,7 +150,7 @@ ENGINE = InnoDB;
 -- Table `volunteerdb`.`CheckIn`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `volunteerdb`.`CheckIn` (
-  `checkin_id` INT NOT NULL,
+  `checkin_id` INT NOT NULL ,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `area_id` INT NULL,

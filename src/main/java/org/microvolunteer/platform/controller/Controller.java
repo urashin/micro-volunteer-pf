@@ -3,6 +3,7 @@ package org.microvolunteer.platform.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.microvolunteer.platform.dto.GeometryDto;
 import org.microvolunteer.platform.dto.HandicapInfoDto;
+import org.microvolunteer.platform.dto.HelpDto;
 import org.microvolunteer.platform.resource.request.*;
 import org.microvolunteer.platform.resource.response.*;
 import org.microvolunteer.platform.service.MatchingService;
@@ -14,6 +15,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.geo.Point;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
@@ -162,6 +165,21 @@ public class Controller {
     }
 
     /**
+     * my_handicap_list
+     * 障害者のHelp画面の個々のヘルプボタンに割り当てるヘルプ情報を取得する
+     */
+    @GetMapping("/user/handicaplist")
+    @ResponseBody
+    public MyHandicapInfoResponse getMyHandicapList(@RequestBody MyHandicapInfoRequest request){
+        logger.info("handicaplist API");
+        // 障害者の位置情報を更新
+        String user_id = tokenService.getUserId(request.getToken());
+        // 障害者の障害情報リストを取得
+        List<HandicapInfoDto> handicapInfoList = usersService.getMyHandicapList(user_id);
+        return MyHandicapInfoResponse.builder().handicapInfoDtoList(handicapInfoList).build();
+    }
+
+    /**
      * ★help（障害者側から）
      */
     @PostMapping("/matching/help")
@@ -176,9 +194,19 @@ public class Controller {
                 .build();
         matchingService.updateMyGeometry(user_id,location,1);
         // 障害者の障害情報を取得
-        HandicapInfoDto handicapInfo = usersService.getHandicappedInfo(user_id);
-        // 障害者情報を取得（ハンディキャップレベル）
-        // matchingService.help();
+        HandicapInfoDto handicapInfo = usersService.getHandicappedInfo(helpRequest.getHandicapinfo_id());
+        HelpDto helpDto = HelpDto.builder()
+                .handicapped_id(user_id)
+                .volunteer_id(null)
+                .reliability_th(handicapInfo.getReliability_th())
+                .severity(handicapInfo.getSeverity())
+                .location(location.getPoint())
+                .help_geometry(location)
+                .comment(handicapInfo.getComment())
+                .status(1)
+                .build();
+        matchingService.help(helpDto);
+        //matchingService.countTargetVolunteer(help)
         // 対象ボランティアの抽出（マッチング）
         // 対象ボランティアへのpush通知(python APIを使う)
         return HelpResponse.builder().result("OK").build();
