@@ -71,12 +71,7 @@ CREATE TABLE IF NOT EXISTS `volunteerdb`.`VolunteerSummary` (
   `volunteer_id` VARCHAR(64) NULL,
   `handicap_type` INT NULL,
   `thanks_num` INT NULL,
-  PRIMARY KEY (`summary_id`),
-  CONSTRAINT `volunteer_id`
-    FOREIGN KEY (`volunteer_id`)
-    REFERENCES `volunteerdb`.`Users` (`user_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+  PRIMARY KEY (`summary_id`))
 ENGINE = InnoDB;
 
 
