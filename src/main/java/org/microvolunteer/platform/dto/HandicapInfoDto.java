@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class HandicapInfoDto {
+    private Integer handicapinfo_id;
     private String handicapped_id;
     private Integer handicap_type;
     private Integer handicap_level;

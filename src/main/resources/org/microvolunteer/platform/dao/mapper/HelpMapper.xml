@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.microvolunteer.platform.dao.mapper.HelpMapper">
+    <insert id="registerHelp">
+        insert into Help(
+            handicapped_id
+            ,volunteer_id
+            ,location
+            ,reliability_th
+            ,severity
+            ,comment
+            ,status)
+        values(
+            #{handicapped_id}
+            ,volunteer_id
+            ,ST_GeomFromText(#{location})
+            ,reliability_th
+            ,severity
+            ,comment
+            ,${status})
+    </insert>
+    <update id="registerMatching">
+        update MyGeometry set
+            volunteer_id = ${volunteer_id}
+            ,status = 2
+        where help_id = #{help_id} and status = 1
+    </update>
+    <select id="getHelp">
+        select CONVERT(ST_X(location),NCHAR), CONVERT(ST_Y(location),NCHAR)
+        from MyGeometry
+        where user_id = #{user_id}
+    </select>
+    <select id="getNeighborhood">
+        SELECT user_id,
+               ST_Distance_Sphere(location, ST_GeomFromText('${location}', 4326)) d
+        FROM mygeometry
+        WHERE
+            user_id != ${my_id} AND status = 1 LIMIT 5 order by d desc;
+    </select>
+</mapper>

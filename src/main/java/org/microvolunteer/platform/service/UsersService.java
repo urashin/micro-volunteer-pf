@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.geo.Point;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 
@@ -69,10 +70,19 @@ public class UsersService {
 
     /**
      * 障害者の障害情報を取得
+     * @param handicapinfo_id
+     */
+    public HandicapInfoDto getHandicappedInfo(Integer handicapinfo_id) {
+        HandicapInfoDto handicapInfo = handicapInfoRegisterMapper.getHandicapInfo(handicapinfo_id);
+        return handicapInfo;
+    }
+
+    /**
+     * 障害者の障害情報を取得
      * @param handicapped_id
      */
-    public HandicapInfoDto getHandicappedInfo(String handicapped_id) {
-        HandicapInfoDto handicapInfo = handicapInfoRegisterMapper.getHandicapInfo(handicapped_id);
-        return handicapInfo;
+    public List<HandicapInfoDto> getMyHandicapList(String handicapped_id) {
+        List<HandicapInfoDto> handicaplist = handicapInfoRegisterMapper.getHandicapList(handicapped_id);
+        return handicaplist;
     }
 }
