@@ -4,5 +4,5 @@ import lombok.Data;
 
 @Data
 public class OnetimeurlRequest {
-    private String snsId;
+    private String sns_id;
 }

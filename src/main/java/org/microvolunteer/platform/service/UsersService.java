@@ -1,8 +1,10 @@
 package org.microvolunteer.platform.service;
 
+import org.microvolunteer.platform.dao.mapper.HandicapInfoRegisterMapper;
 import org.microvolunteer.platform.dao.mapper.MyGeometryMapper;
 import org.microvolunteer.platform.dao.mapper.UserMapper;
 import org.microvolunteer.platform.dto.GeometryDto;
+import org.microvolunteer.platform.dto.HandicapInfoDto;
 import org.microvolunteer.platform.dto.UserPropertyDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.geo.Point;
@@ -14,14 +16,17 @@ import java.util.UUID;
 @Service
 public class UsersService {
     private UserMapper userMapper;
+    private HandicapInfoRegisterMapper handicapInfoRegisterMapper;
     private MatchingService matchingService;
 
     @Autowired
     public UsersService(
             UserMapper userMapper
+            ,HandicapInfoRegisterMapper handicapInfoRegisterMapper
             ,MatchingService matchingService
     ) {
         this.userMapper = userMapper;
+        this.handicapInfoRegisterMapper = handicapInfoRegisterMapper;
         this.matchingService= matchingService;
     }
 
@@ -44,8 +49,30 @@ public class UsersService {
         matchingService.insertMyGeometry(uuid.toString(), location, status);
         return uuid.toString();
     }
+
+    /**
+     * ユーザー情報取得 API
+     * @param user_id
+     * @return
+     */
     public UserPropertyDto getUserProperty(String user_id) {
         return userMapper.getUserProperty(user_id);
     }
 
+    /**
+     * 障害者が障害情報を登録するためのAPI
+     * @param handicapInfo
+     */
+    public void registerHandicappedInfo(HandicapInfoDto handicapInfo) {
+        handicapInfoRegisterMapper.registerHandicapInfo(handicapInfo);
+    }
+
+    /**
+     * 障害者の障害情報を取得
+     * @param handicapped_id
+     */
+    public HandicapInfoDto getHandicappedInfo(String handicapped_id) {
+        HandicapInfoDto handicapInfo = handicapInfoRegisterMapper.getHandicapInfo(handicapped_id);
+        return handicapInfo;
+    }
 }

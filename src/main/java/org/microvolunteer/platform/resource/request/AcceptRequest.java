@@ -5,5 +5,5 @@ import lombok.Data;
 @Data
 public class AcceptRequest {
     private String token;
-    private Integer helpId;
+    private Integer help_id;
 }

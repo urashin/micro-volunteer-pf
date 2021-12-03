@@ -5,8 +5,8 @@ import lombok.Data;
 @Data
 public class HelpRequest {
     private String token;
-    private String xGeometry;
-    private String yGeometry;
-    private Integer helpType;
-    private String helpComment;
+    private String x_geometry;
+    private String y_geometry;
+    private Integer help_type;
+    private String help_comment;
 }
