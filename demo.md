@@ -24,5 +24,5 @@ curl -XGET -H "Content-Type: application/json" http://ec2-54-95-14-86.ap-northea
 #### handicap/register : 障害者が自身の障害とその程度、深刻度などを事前に登録しておくことで、簡単に助けを求めることができます。
 ````
 curl -XGET -H "Content-Type: application/json" http://ec2-54-95-14-86.ap-northeast-1.compute.amazonaws.com:8080/v1/matching/checkin 
--d '{"token":"(sns_registerで取得したtokenをここに入れます)","handicap_type":1,"handicap_level":1, "reliability_th": 1, "severity": 4, "comment": "本当に困っています、助けてください"}'
+-d '{"token":"(sns_registerで取得したtokenをここに入れます)","handicap_type":1,"handicap_level":1, "reliability_th": 1, "severity": 4, "comment": "車椅子なので、高いところに手がとどきません。かわりにとっていただけませんか？"}'
 ````
