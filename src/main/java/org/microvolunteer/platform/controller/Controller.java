@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.microvolunteer.platform.dto.GeometryDto;
 import org.microvolunteer.platform.dto.HandicapInfoDto;
 import org.microvolunteer.platform.dto.HelpDto;
+import org.microvolunteer.platform.dto.NeighborDistanceDto;
 import org.microvolunteer.platform.resource.request.*;
 import org.microvolunteer.platform.resource.response.*;
 import org.microvolunteer.platform.service.MatchingService;
@@ -206,8 +207,11 @@ public class Controller {
                 .status(1)
                 .build();
         matchingService.help(helpDto);
-        //matchingService.countTargetVolunteer(help)
+
         // 対象ボランティアの抽出（マッチング）
+        // 近くにいる人達を検索する。
+        // 他の障害者、ボランティア混在しているが、助けられる人が助ければよいので分ける必要は無いと思う。
+        List<NeighborDistanceDto> neighborsList = matchingService.getNeigborhood(user_id, location.getPoint());
         // 対象ボランティアへのpush通知(python APIを使う)
         return HelpResponse.builder().result("OK").build();
     }

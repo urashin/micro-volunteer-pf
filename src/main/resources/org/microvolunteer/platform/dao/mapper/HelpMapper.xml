@@ -32,11 +32,14 @@
         from MyGeometry
         where user_id = #{user_id}
     </select>
-    <select id="getNeighborhood">
+    <select id="getNeighborhood" resultType="org.microvolunteer.platform.dto.NeighborDistanceDto">
         SELECT user_id,
-               ST_Distance_Sphere(location, ST_GeomFromText('${location}', 4326)) d
+               ST_X(location) x_geometry,
+               ST_Y(location) y_geometry,
+               ST_Distance(location, ST_GeomFromText('${location}')) distance
         FROM mygeometry
         WHERE
-            user_id != ${my_id} AND status = 1 LIMIT 5 order by d desc;
+            user_id != #{my_id} AND status = 1
+        order by distance LIMIT 5;
     </select>
 </mapper>
