@@ -1,20 +1,27 @@
 # デモ環境の説明
 
-### ここで用意されているAPIは以下
+#### プラットフォームが今回の提案となります、お試しいただくには curlかRestClientをご利用ください。
+#### 12/4のプレゼンではこれらのAPIを利用したアプリでデモを行います。
 
-| API | 説明 |
-| ----------------| ------------------------|
-|  /v1/user/sns_register | SNSとのID連携 API |
-|  /v1/user/register | 基本的なユーザー情報の登録 |
-|  /v1/user/handicap/register | 障害者の障害情報の登録 |
-|  /v1/matching/checkin | 商業施設や観光スポットなどでの位置情報登録（スポット付近にいます） |
-|  /v1/matching/checkout | 商業施設や観光スポットからの離脱（もう付近にはいません） |
-|  /v1/matching/help| 付近にいる可能性の高いボランティアに助けを求める |
-|  /v1/matching/accetp| 自分に届いたhelpに応じる |
-|  /v1/matching/helpdetail | マッチング相手の情報を参照 |
-|  /v1/matching/thanks | 助けてもらった後のお礼 |
+### デモ環境動作確認
+こちらにアクセスし、{"result","OK"}が表示されることを確認してください。こちらのデモ環境は(2021/12/4のみ稼働します)
+
+http://ec2-54-95-14-86.ap-northeast-1.compute.amazonaws.com:8080/v1/kakunin
 
 
-### login API
-curl -XGET -H "Content-Type: application/json" http://localhost:8080/v1/user/login -d '{"userId":"my@email.org", "password":"mypass"}'
+### 実行方法
+#### sns_register : tokenの取得(LINEアカウントとの紐付けに使います)
+````
+curl -XGET -H "Content-Type: application/json" http://ec2-54-95-14-86.ap-northeast-1.compute.amazonaws.com:8080/v1/user/sns_register -d '{"sns_id":"XXXXXXXXXSNSIDXXXXXXXXXX", "sns_type":1}'
+````
 
+#### checkin : 特定の場所に自身（主にボランティア側）が到着したことを記録することで、その周辺でのヘルプを受けやすい状態になる
+````
+curl -XGET -H "Content-Type: application/json" http://ec2-54-95-14-86.ap-northeast-1.compute.amazonaws.com:8080/v1/matching/checkin -d '{"token":"(sns_registerで取得したtokenをここに入れます)","x_geometry":"000.0001","y_geometry":"0.222222"}'
+````
+
+#### handicap/register : 障害者が自身の障害とその程度、深刻度などを事前に登録しておくことで、簡単に助けを求めることができます。
+````
+curl -XGET -H "Content-Type: application/json" http://ec2-54-95-14-86.ap-northeast-1.compute.amazonaws.com:8080/v1/matching/checkin 
+-d '{"token":"(sns_registerで取得したtokenをここに入れます)","x_geometry":"000.0001","y_geometry":"0.222222"}'
+````
