@@ -2,10 +2,13 @@ package org.microvolunteer.platform.service;
 
 import org.microvolunteer.platform.dao.mapper.HandicapInfoRegisterMapper;
 import org.microvolunteer.platform.dao.mapper.MyGeometryMapper;
+import org.microvolunteer.platform.dao.mapper.ThanksMapper;
 import org.microvolunteer.platform.dao.mapper.UserMapper;
 import org.microvolunteer.platform.dto.GeometryDto;
 import org.microvolunteer.platform.dto.HandicapInfoDto;
 import org.microvolunteer.platform.dto.UserPropertyDto;
+import org.microvolunteer.platform.dto.VolunteerHistoryDto;
+import org.microvolunteer.platform.resource.request.ThanksRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.geo.Point;
 import org.springframework.stereotype.Service;
@@ -17,16 +20,19 @@ import java.util.UUID;
 @Service
 public class UsersService {
     private UserMapper userMapper;
+    private ThanksMapper thanksMapper;
     private HandicapInfoRegisterMapper handicapInfoRegisterMapper;
     private MatchingService matchingService;
 
     @Autowired
     public UsersService(
             UserMapper userMapper
+            ,ThanksMapper thanksMapper
             ,HandicapInfoRegisterMapper handicapInfoRegisterMapper
             ,MatchingService matchingService
     ) {
         this.userMapper = userMapper;
+        this.thanksMapper = thanksMapper;
         this.handicapInfoRegisterMapper = handicapInfoRegisterMapper;
         this.matchingService= matchingService;
     }
@@ -45,7 +51,7 @@ public class UsersService {
         // 初期座標を登録する
         String x = "00.0000";
         String y = "00.0000";
-        GeometryDto location = GeometryDto.builder().xGeometry(x).yGeometry(y).build();
+        GeometryDto location = GeometryDto.builder().x_geometry(x).y_geometry(y).build();
         Integer status = 0;
         matchingService.insertMyGeometry(uuid.toString(), location, status);
         return uuid.toString();
@@ -84,5 +90,22 @@ public class UsersService {
     public List<HandicapInfoDto> getMyHandicapList(String handicapped_id) {
         List<HandicapInfoDto> handicaplist = handicapInfoRegisterMapper.getHandicapList(handicapped_id);
         return handicaplist;
+    }
+
+    /**
+     * 助けてもらったお礼、評価
+     */
+    public void thanks(ThanksRequest thanks, String volunteer_id) {
+        thanksMapper.thanks(thanks.getHelp_id(),volunteer_id,thanks.getEvaluate(),1);
+    }
+
+    /**
+     * ボランティア履歴の取得
+     * @param volunteer_id
+     * @param get_limit
+     */
+    public List<VolunteerHistoryDto> getMyVolunteerHistory(String volunteer_id,Integer get_limit) {
+        List<VolunteerHistoryDto> history = thanksMapper.getMyVolunteerHistory(volunteer_id,get_limit);
+        return history;
     }
 }

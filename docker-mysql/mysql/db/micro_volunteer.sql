@@ -37,7 +37,8 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `volunteerdb`.`VolunteerHistory` (
   `history_id` INT NOT NULL,
-  `craeted_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `location` GEOMETRY NULL,
   `volunteer_id` VARCHAR(64) NOT NULL,
   `handicapped_id` VARCHAR(64) NOT NULL,
@@ -136,11 +137,12 @@ CREATE TABLE IF NOT EXISTS `volunteerdb`.`Help` (
   `handicapped_id` VARCHAR(64) NULL,
   `volunteer_id` VARCHAR(64) NULL,
   `location` GEOMETRY NOT NULL,
+  `handicap_type` INT NULL,
+  `handicap_level` INT NULL,
   `reliability_th` INT NULL,
   `severity` INT NULL,
   `comment` VARCHAR(128),
   `status` INT NULL COMMENT '助けを呼ぶ',
-  PRIMARY KEY (`help_id`),
   INDEX `handicapped_id_idx` (`handicapped_id` ASC) VISIBLE,
   INDEX `volunteer_id_idx` (`volunteer_id` ASC) VISIBLE)
 ENGINE = InnoDB;

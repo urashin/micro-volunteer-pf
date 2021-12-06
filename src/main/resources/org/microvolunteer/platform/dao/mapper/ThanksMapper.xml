@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.microvolunteer.platform.dao.mapper.ThanksMapper">
+    <insert id="thanks">
+        insert into VolunteerHistory(volunteer_id, handicapped_id, location, handicap_type, handicap_level, satisfaction, status)
+               select
+                h.volunteer_id
+                ,h.handicapped_id
+                ,h.location
+                ,h.handicap_type
+                ,h.handicap_level
+                ,${satisfaction}
+                ,${status}
+                from help h where h.help_id = ${help_id} and h.volunteer_id = #{volunteer_id}
+    </insert>
+    <select id="getMyVolunteerHistory" resultType="org.microvolunteer.platform.dto.VolunteerHistoryDto">
+        select
+            ST_X(location) x_geometry
+            ,ST_Y(location) y_geometry
+            ,handicap_type
+            ,handicap_level
+            ,satisfaction
+        from volunteerhistory where volunteer_id = #{volunteer_id} ORDER BY created_at LIMIT ${get_limit}
+    </select>
+</mapper>

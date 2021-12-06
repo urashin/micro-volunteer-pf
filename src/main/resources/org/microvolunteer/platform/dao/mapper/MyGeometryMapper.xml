@@ -13,9 +13,11 @@
             ,status = ${status}
         where user_id = #{user_id}
     </update>
-    <select id="getGeometry">
-        select CONVERT(ST_X(location),NCHAR), CONVERT(ST_Y(location),NCHAR)
-        from MyGeometry
+    <select id="getMyGeometry" resultType="org.microvolunteer.platform.dto.LocationDto">
+        select
+               ST_X(location) x_geometry
+             , ST_Y(location) y_geometry
+        from mygeometry
         where user_id = #{user_id}
     </select>
 </mapper>

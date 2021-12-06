@@ -1,10 +1,7 @@
 package org.microvolunteer.platform.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.microvolunteer.platform.dto.GeometryDto;
-import org.microvolunteer.platform.dto.HandicapInfoDto;
-import org.microvolunteer.platform.dto.HelpDto;
-import org.microvolunteer.platform.dto.NeighborDistanceDto;
+import org.microvolunteer.platform.dto.*;
 import org.microvolunteer.platform.resource.request.*;
 import org.microvolunteer.platform.resource.response.*;
 import org.microvolunteer.platform.service.MatchingService;
@@ -149,7 +146,7 @@ public class Controller {
     public CheckInResponse checkin(@RequestBody CheckInRequest checkInRequest){
         logger.info("CheckIn API: {}", checkInRequest.getToken());
         String user_id = tokenService.getUserId(checkInRequest.getToken());
-        GeometryDto location = GeometryDto.builder().xGeometry(checkInRequest.getX_geometry()).yGeometry(checkInRequest.getY_geometry()).build();
+        GeometryDto location = GeometryDto.builder().x_geometry(checkInRequest.getX_geometry()).y_geometry(checkInRequest.getY_geometry()).build();
         matchingService.updateMyGeometry(user_id,location,1);
         logger.info("CheckIn API user_id : {}", user_id);
         return CheckInResponse.builder().result("OK").build();
@@ -160,7 +157,7 @@ public class Controller {
     public CheckInResponse checkout(@RequestBody CheckInRequest checkInRequest){
         logger.info("CheckIn API: {}", checkInRequest.getToken());
         String user_id = tokenService.getUserId(checkInRequest.getToken());
-        GeometryDto location = GeometryDto.builder().xGeometry(checkInRequest.getX_geometry()).yGeometry(checkInRequest.getY_geometry()).build();
+        GeometryDto location = GeometryDto.builder().x_geometry(checkInRequest.getX_geometry()).y_geometry(checkInRequest.getY_geometry()).build();
         matchingService.updateMyGeometry(user_id,location,0);
         return CheckInResponse.builder().result("OK").build();
     }
@@ -190,8 +187,8 @@ public class Controller {
         // 障害者の位置情報を更新
         String user_id = tokenService.getUserId(helpRequest.getToken());
         GeometryDto location = GeometryDto.builder()
-                .xGeometry(helpRequest.getX_geometry())
-                .yGeometry(helpRequest.getY_geometry())
+                .x_geometry(helpRequest.getX_geometry())
+                .y_geometry(helpRequest.getY_geometry())
                 .build();
         matchingService.updateMyGeometry(user_id,location,1);
         // 障害者の障害情報を取得
@@ -238,29 +235,51 @@ public class Controller {
 
     /**
      * ★accept（ボランティア側から）
+     * acceptでも位置座標を受け取り直したほうが良さそう、チェックインから移動しているため。
      */
     @PostMapping("/matching/accept")
     @ResponseBody
     public AcceptResponse accept(@RequestBody AcceptRequest acceptRequest){
         logger.info("accept API: {}", acceptRequest.getHelp_id());
+        String user_id = tokenService.getUserId(acceptRequest.getToken());
+        GeometryDto geo = matchingService.getMyGeometry(user_id);
+        matchingService.accept(acceptRequest.getHelp_id(),user_id);
 
         return AcceptResponse.builder()
-                .helpId(1)
-                .xGeometry("xxxx.xxxx")
-                .yGeometry("yyyy.yyy")
+                .helpId(acceptRequest.getHelp_id())
+                .xGeometry(geo.getX_geometry())
+                .yGeometry(geo.getY_geometry())
                 .build();
     }
 
     /**
      * ★thanks（障害者から）
      */
-    @PostMapping("/evaluate/thanks")
+    @PostMapping("/user/thanks")
     @ResponseBody
     public ThanksResponse thanks(@RequestBody ThanksRequest thanksRequest){
         logger.info("thanks API: {}", thanksRequest.getHelp_id());
+        String user_id = tokenService.getUserId(thanksRequest.getToken());
 
+        usersService.thanks(thanksRequest, user_id);
         return ThanksResponse.builder()
                 .result("OK")
+                .build();
+    }
+
+    /**
+     * ★ボランティア履歴の取得
+     */
+    @GetMapping("/user/history")
+    @ResponseBody
+    public VolunteerHistoryResponse history(@RequestBody VolunteerHistoryRequest historyRequest){
+        logger.info("history API");
+        String user_id = tokenService.getUserId(historyRequest.getToken());
+
+        Integer get_limit = 10;
+        List<VolunteerHistoryDto> volunteerHistory = usersService.getMyVolunteerHistory(user_id,get_limit);
+        return VolunteerHistoryResponse.builder()
+                .volunteerHistory(volunteerHistory)
                 .build();
     }
 
@@ -270,15 +289,5 @@ public class Controller {
         logger.info("疎通確認 URL");
         return CheckInResponse.builder().result("OK").build();
     }
-
-
-    /**
-     * ★line callbackで通知の仕組みを作る
-     * ★自分の評価一覧
-     * ☆QRコード生成（引数のURLに入れておくもの：
-     * ☆QRコード解釈（url取得→URLに入れる情報
-     * ☆自分の評価を公開するようのurl発行
-     * ☆指定スポット付近でよく発生する困りごと（自分の障害でフィルター可能）
-     */
 
 }
