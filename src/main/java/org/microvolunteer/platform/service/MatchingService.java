@@ -2,13 +2,10 @@ package org.microvolunteer.platform.service;
 
 import org.microvolunteer.platform.dao.mapper.HelpMapper;
 import org.microvolunteer.platform.dao.mapper.MyGeometryMapper;
-import org.microvolunteer.platform.dao.mapper.SnsRegisterMapper;
-import org.microvolunteer.platform.dto.GeometryDto;
-import org.microvolunteer.platform.dto.HandicapInfoDto;
-import org.microvolunteer.platform.dto.HelpDto;
-import org.microvolunteer.platform.dto.NeighborDistanceDto;
+import org.microvolunteer.platform.dao.mapper.ThanksMapper;
+import org.microvolunteer.platform.dto.*;
+import org.microvolunteer.platform.resource.request.ThanksRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.geo.Point;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,7 +25,11 @@ public class MatchingService {
     }
 
     public GeometryDto getMyGeometry(String user_id) {
-        return myGeometryMapper.getMyGeometry(user_id);
+        LocationDto location = myGeometryMapper.getMyGeometry(user_id);
+        return GeometryDto.builder()
+                .x_geometry(location.getX_geometry())
+                .y_geometry(location.getY_geometry())
+                .build();
     }
 
     /*
@@ -52,5 +53,13 @@ public class MatchingService {
     public List<NeighborDistanceDto> getNeigborhood(String my_id, String location) {
         List<NeighborDistanceDto> neighborList = helpMapper.getNeighborhood(my_id, location);
         return neighborList;
+    }
+
+    public void accept(Integer help_id, String volunteer_id) {
+        helpMapper.accept(help_id,volunteer_id);
+    }
+
+    public HelpDto getHelpInfo(Integer help_id) {
+        return helpMapper.getHelpInfo(help_id);
     }
 }
