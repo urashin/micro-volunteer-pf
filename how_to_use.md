@@ -12,36 +12,41 @@
 |  /v1/matching/help| 付近にいる可能性の高いボランティアに助けを求める |
 |  /v1/matching/accetp| 自分に届いたhelpに応じる |
 |  /v1/matching/helpdetail | マッチング相手の情報を参照 |
-|  /v1/matching/thanks | 助けてもらった後のお礼 |
+|  /v1/user/thanks | 助けてもらった後のお礼 |
+|  /v1/user/history | ボランティア履歴の取得 |
 
 
-### login API
-curl -XGET -H "Content-Type: application/json" http://localhost:8080/v1/user/login -d '{"userId":"my@email.org", "password":"mypass"}'
 
-### Reference Documentation
-For further reference, please consider the following sections:
+実行例
+```
+AWS_HOST=localhost
 
-* [Official Gradle documentation](https://docs.gradle.org)
-* [Spring Boot Gradle Plugin Reference Guide](https://docs.spring.io/spring-boot/docs/2.6.0/gradle-plugin/reference/html/)
-* [Create an OCI image](https://docs.spring.io/spring-boot/docs/2.6.0/gradle-plugin/reference/html/#build-image)
-* [Spring Web](https://docs.spring.io/spring-boot/docs/2.6.0/reference/htmlsingle/#boot-features-developing-web-applications)
-* [JDBC API](https://docs.spring.io/spring-boot/docs/2.6.0/reference/htmlsingle/#boot-features-sql)
-* [MyBatis Framework](https://mybatis.org/spring-boot-starter/mybatis-spring-boot-autoconfigure/)
-* [Spring Data JDBC](https://docs.spring.io/spring-data/jdbc/docs/current/reference/html/)
+# LINE IDとの連携API（障害者、ボランティア）
+curl -XGET -H "Content-Type: application/json" http://${AWS_HOST}:8080/v1/user/sns_register -d '{"sns_id":"XXXXXXXXXSNSIDXXXXXXXXXX", "sns_type":1}'
 
-### Guides
-The following guides illustrate how to use some features concretely:
+# 自分の位置情報を登録（障害者、ボランティア）
+# x_geometry : 経度
+# y_geometry : 緯度
+curl -XPOST -H "Content-Type: application/json" http://${AWS_HOST}:8080/v1/matching/checkin -d '{"token":"f9924d98-a8fe-438e-84af-2f091f1927b5","x_geometry":"000.0001","y_geometry":"0.222222"}'
 
-* [Building a RESTful Web Service](https://spring.io/guides/gs/rest-service/)
-* [Serving Web Content with Spring MVC](https://spring.io/guides/gs/serving-web-content/)
-* [Building REST services with Spring](https://spring.io/guides/tutorials/bookmarks/)
-* [Accessing Relational Data using JDBC with Spring](https://spring.io/guides/gs/relational-data-access/)
-* [Managing Transactions](https://spring.io/guides/gs/managing-transactions/)
-* [MyBatis Quick Start](https://github.com/mybatis/spring-boot-starter/wiki/Quick-Start)
-* [Using Spring Data JDBC](https://github.com/spring-projects/spring-data-examples/tree/master/jdbc/basics)
+# 自身の障害と、よく発生する状況ごとの緊急度＆メッセージを事前に登録しておく（これで１ボタンでヘルプがコールできる）
+curl -XPOST -H "Content-Type: application/json" http://${AWS_HOST}:8080/v1/user/handicap/register -d '{"token":"f9924d98-a8fe-438e-84af-2f091f1927b5","handicap_type":1,"handicap_level":1, "reliability_th": 1, "severity": 10, "comment": "本当に困っています、助けてください"}'
+curl -XPOST -H "Content-Type: application/json" http://${AWS_HOST}:8080/v1/user/handicap/register -d '{"token":"f9924d98-a8fe-438e-84af-2f091f1927b5","handicap_type":1,"handicap_level":1, "reliability_th": 3, "severity": 1, "comment": "すこしだけ困っています、お手すきでおねがいします。"}'
 
-### Additional Links
-These additional references should also help you:
+# 自身の障害＆ヘルプメッセージリストを取得
+curl -XGET -H "Content-Type: application/json" http://${AWS_HOST}:8080/v1/user/handicaplist -d '{"token":"f9924d98-a8fe-438e-84af-2f091f1927b5"}'
 
-* [Gradle Build Scans – insights for your project's build](https://scans.gradle.com#gradle)
+# 助けを求める（障害者）
+# x_geometry : 経度
+# y_geometry : 緯度
+curl -XPOST -H "Content-Type: application/json" http://${AWS_HOST}:8080/v1/matching/help -d '{"token":"1d45d8c5-378a-44d0-95bc-d430d34a9100","x_geometry":"35.7107654","y_geometry":"139.795978","handicapinfo_id":2}'
 
+# ボランティア側がヘルプに応じる
+curl -XPOST -H "Content-Type: application/json" http://${AWS_HOST}:8080/v1/matching/accept -d '{"token":"1d45d8c5-378a-44d0-95bc-d430d34a9100","help_id":7}'
+
+# 助けてくれたボランティアに「ありがとう」評価を送る
+#curl -XPOST -H "Content-Type: application/json" http://${AWS_HOST}:8080/v1/user/thanks -d '{"token":"1d45d8c5-378a-44d0-95bc-d430d34a9100","help_id":7,"evaluate":10}'
+
+# これまでの自分のボランティア履歴を取得する
+curl -XGET -H "Content-Type: application/json" http://${AWS_HOST}:8080/v1/user/history -d '{"token":"1d45d8c5-378a-44d0-95bc-d430d34a9100"}'
+```
