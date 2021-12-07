@@ -1,32 +1,14 @@
-# Getting Started
+# Tokyo OSS Party!! 2021
 
-### login API
-curl -XGET -H "Content-Type: application/json" http://localhost:8080/v1/user/login -d '{"userId":"my@email.org", "password":"mypass"}'
+[公式サイト](https://tokyo-oss-party.com/)
 
-### Reference Documentation
-For further reference, please consider the following sections:
+ここは、TeamG マイクロボランティア支援隊 / Platform main リポジトリです。
 
-* [Official Gradle documentation](https://docs.gradle.org)
-* [Spring Boot Gradle Plugin Reference Guide](https://docs.spring.io/spring-boot/docs/2.6.0/gradle-plugin/reference/html/)
-* [Create an OCI image](https://docs.spring.io/spring-boot/docs/2.6.0/gradle-plugin/reference/html/#build-image)
-* [Spring Web](https://docs.spring.io/spring-boot/docs/2.6.0/reference/htmlsingle/#boot-features-developing-web-applications)
-* [JDBC API](https://docs.spring.io/spring-boot/docs/2.6.0/reference/htmlsingle/#boot-features-sql)
-* [MyBatis Framework](https://mybatis.org/spring-boot-starter/mybatis-spring-boot-autoconfigure/)
-* [Spring Data JDBC](https://docs.spring.io/spring-data/jdbc/docs/current/reference/html/)
 
-### Guides
-The following guides illustrate how to use some features concretely:
+[document](https://github.com/urashin/micro-volunteer-docs)
 
-* [Building a RESTful Web Service](https://spring.io/guides/gs/rest-service/)
-* [Serving Web Content with Spring MVC](https://spring.io/guides/gs/serving-web-content/)
-* [Building REST services with Spring](https://spring.io/guides/tutorials/bookmarks/)
-* [Accessing Relational Data using JDBC with Spring](https://spring.io/guides/gs/relational-data-access/)
-* [Managing Transactions](https://spring.io/guides/gs/managing-transactions/)
-* [MyBatis Quick Start](https://github.com/mybatis/spring-boot-starter/wiki/Quick-Start)
-* [Using Spring Data JDBC](https://github.com/spring-projects/spring-data-examples/tree/master/jdbc/basics)
+[platform (backend : 主要機能)](https://github.com/urashin/micro-volunteer-pf/blob/master/how_to_use.md)
 
-### Additional Links
-These additional references should also help you:
+[platform (backend : LINE連携部分)](https://github.com/urashin/micro-volunteer-pf-python)
 
-* [Gradle Build Scans – insights for your project's build](https://scans.gradle.com#gradle)
-
+[platformで動作するアプリのサンプル](https://github.com/urashin/micro-volunteer-app-sample)
