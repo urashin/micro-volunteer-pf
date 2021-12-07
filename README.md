@@ -5,10 +5,12 @@
 ここは、TeamG マイクロボランティア支援隊 / Platform main リポジトリです。
 
 
-[document](https://github.com/urashin/micro-volunteer-docs)
+### [document](https://github.com/urashin/micro-volunteer-docs)
 
-[platform (backend : 主要機能)](https://github.com/urashin/micro-volunteer-pf/blob/master/how_to_use.md)
+### [platform (backend : 主要機能)](https://github.com/urashin/micro-volunteer-pf/blob/master/how_to_use.md)
 
-[platform (backend : LINE連携部分)](https://github.com/urashin/micro-volunteer-pf-python)
+* [利用方法](https://github.com/urashin/micro-volunteer-pf/blob/master/how_to_use.md)
 
-[platformで動作するアプリのサンプル](https://github.com/urashin/micro-volunteer-app-sample)
+### [platform (backend : LINE連携部分)](https://github.com/urashin/micro-volunteer-pf-python)
+
+### [platformで動作するアプリのサンプル](https://github.com/urashin/micro-volunteer-app-sample)
