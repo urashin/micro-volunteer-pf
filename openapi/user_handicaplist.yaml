@@ -1,0 +1,109 @@
+openapi: 3.1.0
+info:
+  title: handicaplist
+  version: '1.0'
+servers:
+  - url: 'http://localhost:3000'
+paths:
+  /v1/user/handicaplist:
+    post:
+      summary: 障害リスト取得
+      operationId: user-handicaplist
+      responses:
+        '200':
+          $ref: '#/components/responses/response'
+      description: 障害者自身が登録した障害リストを取得するAPI
+      requestBody:
+        $ref: '#/components/requestBodies/request'
+components:
+  schemas: {}
+  requestBodies:
+    request:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+                description: ユーザー認証で発行されるトークン
+              help_id:
+                type: string
+                description: マッチング情報を指定するキー
+            required:
+              - token
+              - help_id
+  responses:
+    response:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            description: ''
+            type: object
+            x-examples:
+              example-1:
+                handicapInfoDtoList:
+                  - handicapinfo_id: 1
+                    handicapped_id: aee287cf-171d-4a6e-94a6-8701759fb686
+                    handicap_type: 1
+                    handicap_level: 1
+                    reliability_th: 1
+                    severity: 4
+                    comment: 本当に困っています、助けてください
+                  - handicapinfo_id: 2
+                    handicapped_id: aee287cf-171d-4a6e-94a6-8701759fb686
+                    handicap_type: 1
+                    handicap_level: 1
+                    reliability_th: 3
+                    severity: 1
+                    comment: すこしだけ困っています、お手すきで助けていただけると。
+            properties:
+              handicapInfoDtoList:
+                type: array
+                uniqueItems: false
+                items:
+                  type: object
+                  properties:
+                    handicapinfo_id:
+                      type: integer
+                    handicapped_id:
+                      type: string
+                    handicap_type:
+                      type: integer
+                    handicap_level:
+                      type: integer
+                    reliability_th:
+                      type: integer
+                    severity:
+                      type: integer
+                    comment:
+                      type: string
+                  required:
+                    - handicapinfo_id
+                    - handicapped_id
+                    - handicap_type
+                    - handicap_level
+                    - reliability_th
+                    - severity
+                    - comment
+            required:
+              - handicapInfoDtoList
+          examples:
+            example:
+              value:
+                handicapInfoDtoList:
+                  - handicapinfo_id: 1
+                    handicapped_id: aee287cf-171d-4a6e-94a6-8701759fb686
+                    handicap_type: 1
+                    handicap_level: 1
+                    reliability_th: 1
+                    severity: 4
+                    comment: 本当に困っています、助けてください
+                  - handicapinfo_id: 2
+                    handicapped_id: aee287cf-171d-4a6e-94a6-8701759fb686
+                    handicap_type: 1
+                    handicap_level: 1
+                    reliability_th: 3
+                    severity: 1
+                    comment: すこしだけ困っています、お手すきで助けていただけると。

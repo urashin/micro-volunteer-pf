@@ -1,0 +1,68 @@
+openapi: 3.1.0
+info:
+  title: checkin
+  version: '1.0'
+  summary: チェックイン
+  description: チェックインします。ボランティア、障害者の両方から使用されます。
+servers:
+  - url: 'http://localhost:3000'
+paths:
+  /v1/matching/checkin:
+    post:
+      summary: チェックイン
+      operationId: post-matching-checkin
+      responses:
+        '200':
+          $ref: '#/components/responses/response'
+      requestBody:
+        $ref: '#/components/requestBodies/request'
+      description: チェックイン
+    parameters: []
+components:
+  schemas: {}
+  requestBodies:
+    request:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+                description: ユーザー認証で発行されるトークン
+              x_geometry:
+                type: string
+                description: 経度
+              y_geometry:
+                type: string
+                description: 緯度
+            required:
+              - token
+              - x_geometry
+              - y_geometry
+          examples:
+            example:
+              value:
+                token: f9924d98-a8fe-438e-84af-2f091f1927b5
+                x_geometry: '000.0001'
+                y_geometry: '0.222222'
+        application/xml:
+          schema:
+            type: object
+            properties: {}
+  responses:
+    response:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              result:
+                type: string
+            required:
+              - result
+          examples:
+            example:
+              value:
+                result: OK

@@ -1,0 +1,49 @@
+openapi: 3.1.0
+info:
+  title: accept
+  version: '1.0'
+servers:
+  - url: 'http://localhost:3000'
+paths:
+  /v1/matching/accept:
+    post:
+      summary: accept
+      operationId: matching-accept
+      responses:
+        '200':
+          $ref: '#/components/responses/response'
+      requestBody:
+        $ref: '#/components/requestBodies/request'
+      description: ボランティアが障害者からのHelpに応じるためのAPI
+components:
+  schemas: {}
+  requestBodies:
+    request:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+                description: ユーザー認証で発行されるトークン
+              help_id:
+                type: integer
+                description: マッチング情報を指定するキー
+            required:
+              - token
+              - help_id
+  responses:
+    response:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              result:
+                type: string
+          examples:
+            example:
+              value:
+                result: OK

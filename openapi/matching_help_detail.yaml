@@ -1,0 +1,61 @@
+openapi: 3.1.0
+info:
+  title: helpdetail
+  version: '1.0'
+servers:
+  - url: 'http://localhost:3000'
+paths:
+  v1/matching/helpdetail:
+    parameters: []
+    get:
+      summary: help詳細
+      operationId: v1-matching-helpdetail
+      responses:
+        '200':
+          $ref: '#/components/responses/response'
+      description: マッチングしたhelpIdから、相手の詳細情報を取得する。ボランティア、障害者の両方から利用される。
+      requestBody:
+        $ref: '#/components/requestBodies/request'
+components:
+  schemas: {}
+  requestBodies:
+    request:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+                description: ユーザー認証で発行されるトークン
+              help_id:
+                type: integer
+                description: 自身がマッチングした相手の情報を取得するためのキー
+            required:
+              - token
+              - help_id
+  responses:
+    response:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+                description: ユーザー認証で発行されるトークン
+              help_id:
+                type: integer
+              x_geometry:
+                type: string
+                description: 相手の位置情報
+              y_geometry:
+                type: string
+                description: 相手の位置情報
+              help_type:
+                type: integer
+                description: 助けて欲しい用事のタイプ
+              help_comment:
+                type: string
+                description: コメント

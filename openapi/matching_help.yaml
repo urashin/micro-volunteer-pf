@@ -1,0 +1,77 @@
+openapi: 3.1.0
+info:
+  title: help
+  version: '1.0'
+servers:
+  - url: 'http://localhost:3000'
+paths:
+  /v1/matching/help:
+    post:
+      summary: help
+      operationId: matching-help
+      responses:
+        '200':
+          $ref: '#/components/responses/response'
+      requestBody:
+        $ref: '#/components/requestBodies/request'
+      description: 障害者側からの助けを求めるためのAPI
+components:
+  schemas: {}
+  requestBodies:
+    request:
+      content:
+        application/json:
+          schema:
+            description: ''
+            type: object
+            x-examples:
+              example-1:
+                token: f9924d98-a8fe-438e-84af-2f091f1927b5
+                x_geometry: '000.0001'
+                y_geometry: '0.222222'
+                handicapinfo_id: 1
+            properties:
+              token:
+                type: string
+                description: ユーザー認証で発行されるトークン
+              x_geometry:
+                type: string
+                description: 経度
+              y_geometry:
+                type: string
+                description: 緯度
+              handicapinfo_id:
+                type: integer
+                description: 何でこまっているのか
+            required:
+              - token
+              - x_geometry
+              - y_geometry
+              - handicapinfo_id
+          examples:
+            example:
+              value:
+                token: f9924d98-a8fe-438e-84af-2f091f1927b5
+                x_geometry: '000.0001'
+                y_geometry: '0.222222'
+                handicapinfo_id: 1
+  responses:
+    response:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            description: ''
+            type: object
+            x-examples:
+              example-1:
+                result: OK
+            properties:
+              result:
+                type: string
+            required:
+              - result
+          examples:
+            example:
+              value:
+                result: OK
