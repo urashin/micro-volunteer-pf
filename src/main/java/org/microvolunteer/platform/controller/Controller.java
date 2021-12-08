@@ -221,7 +221,7 @@ public class Controller {
     @GetMapping("/matching/helpdetail")
     @ResponseBody
     public HelpDetailResponse helpDetail(@RequestBody HelpDetailRequest helpDetailRequest){
-        logger.info("HelpDetail API: {}", helpDetailRequest.getHelpId());
+        logger.info("HelpDetail API: {}", helpDetailRequest.getHelp_id());
 
         return HelpDetailResponse.builder()
                 .helpId(1)
