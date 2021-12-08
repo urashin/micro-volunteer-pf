@@ -17,5 +17,4 @@ public interface HelpMapper {
     List<NeighborDistanceDto> getNeighborhood(String my_id, String location);
     Integer checkMatchingVolunteer(Integer help_id, String volunteer_id);
     Integer checkMatchingHandicapped(Integer help_id, String handicapped_id);
-    //HandicapInfoDto getHelpInfo(HelpSearchCondition condition);
 }

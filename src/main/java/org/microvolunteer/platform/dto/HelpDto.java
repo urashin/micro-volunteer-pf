@@ -9,6 +9,8 @@ public class HelpDto {
     private String handicapped_id;
     private String volunteer_id;
     private Integer handicapinfo_id;
+    private Integer handicap_type;
+    private Integer handicap_level;
     private Integer reliability_th;
     private Integer severity;
     private GeometryDto help_geometry;

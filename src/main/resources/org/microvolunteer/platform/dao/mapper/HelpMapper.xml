@@ -10,6 +10,8 @@
             handicapped_id
             ,volunteer_id
             ,location
+            ,handicap_type
+            ,handicap_level
             ,reliability_th
             ,severity
             ,comment
@@ -18,6 +20,8 @@
             #{handicapped_id}
             ,null
             ,ST_GeomFromText(#{location})
+            ,handicap_type
+            ,handicap_level
             ,${reliability_th}
             ,${severity}
             ,#{comment}
@@ -47,7 +51,7 @@
                ST_X(location) x_geometry,
                ST_Y(location) y_geometry,
                ST_Distance(location, ST_GeomFromText('${location}')) distance
-        FROM mygeometry
+        FROM MyGeometry
         WHERE
             user_id != #{my_id} AND status = 1
         order by distance LIMIT 5;

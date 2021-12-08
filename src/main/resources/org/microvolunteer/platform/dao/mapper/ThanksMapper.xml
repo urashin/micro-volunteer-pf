@@ -22,6 +22,6 @@
             ,handicap_type
             ,handicap_level
             ,satisfaction
-        from volunteerhistory where volunteer_id = #{volunteer_id} ORDER BY created_at LIMIT ${get_limit}
+        from VolunteerHistory where volunteer_id = #{volunteer_id} ORDER BY created_at LIMIT ${get_limit}
     </select>
 </mapper>

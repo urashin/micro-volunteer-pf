@@ -17,7 +17,7 @@
         select
                ST_X(location) x_geometry
              , ST_Y(location) y_geometry
-        from mygeometry
+        from MyGeometry
         where user_id = #{user_id}
     </select>
 </mapper>
