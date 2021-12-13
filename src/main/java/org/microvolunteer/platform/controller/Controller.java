@@ -97,12 +97,12 @@ public class Controller {
      */
     @PostMapping("/user/register")
     @ResponseBody
-    public HandicapRegisterResponse register(@RequestBody RegisterRequest registerRequest){
+    public UserRegisterResponse register(@RequestBody RegisterRequest registerRequest){
         logger.info("register API: {}", registerRequest.getEmail());
         // tokenからuser_idを取得
         String user_id = tokenService.getUserId(registerRequest.getToken());
         // email, passwordを登録する
-        return HandicapRegisterResponse.builder().result("OK").build();
+        return UserRegisterResponse.builder().result("OK").build();
     }
 
     /**
