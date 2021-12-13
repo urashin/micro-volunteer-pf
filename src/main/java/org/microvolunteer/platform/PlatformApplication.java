@@ -6,7 +6,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-@MapperScan("org.microvolunteer.platform.dao.mapper")
+@MapperScan("org.microvolunteer.platform.repository.dao.mapper")
 public class PlatformApplication {
 
 	public static void main(String[] args) {

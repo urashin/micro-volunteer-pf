@@ -1,9 +1,11 @@
 package org.microvolunteer.platform.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.microvolunteer.platform.dto.*;
-import org.microvolunteer.platform.resource.request.*;
-import org.microvolunteer.platform.resource.response.*;
+import org.microvolunteer.platform.domain.resource.request.*;
+import org.microvolunteer.platform.domain.resource.response.*;
+import org.microvolunteer.platform.domain.resource.HandicapInfo;
+import org.microvolunteer.platform.domain.resource.Location;
+import org.microvolunteer.platform.domain.resource.VolunteerHistory;
 import org.microvolunteer.platform.service.MatchingService;
 import org.microvolunteer.platform.service.SnsIdRegisterService;
 import org.microvolunteer.platform.service.TokenService;
@@ -11,7 +13,6 @@ import org.microvolunteer.platform.service.UsersService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.geo.Point;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -96,12 +97,12 @@ public class Controller {
      */
     @PostMapping("/user/register")
     @ResponseBody
-    public RegisterResponse register(@RequestBody RegisterRequest registerRequest){
+    public HandicapRegisterResponse register(@RequestBody RegisterRequest registerRequest){
         logger.info("register API: {}", registerRequest.getEmail());
         // tokenからuser_idを取得
         String user_id = tokenService.getUserId(registerRequest.getToken());
         // email, passwordを登録する
-        return RegisterResponse.builder().result("OK").build();
+        return HandicapRegisterResponse.builder().result("OK").build();
     }
 
     /**
@@ -112,19 +113,11 @@ public class Controller {
      */
     @PostMapping("/user/handicap/register")
     @ResponseBody
-    public RegisterResponse handicap_register(@RequestBody HandicapRegisterRequest registerRequest){
+    public HandicapRegisterResponse handicap_register(@RequestBody HandicapRegisterRequest registerRequest){
         logger.info("handicap register API: {}", registerRequest.getHandicap_level());
         String user_id = tokenService.getUserId(registerRequest.getToken());
-        HandicapInfoDto handicapInfo = HandicapInfoDto.builder()
-                .handicapped_id(user_id)
-                .reliability_th(registerRequest.getReliability_th())
-                .severity(registerRequest.getSeverity())
-                .handicap_type(registerRequest.getHandicap_type())
-                .handicap_level(registerRequest.getHandicap_level())
-                .comment(registerRequest.getComment())
-                .build();
-        usersService.registerHandicappedInfo(handicapInfo);
-        return RegisterResponse.builder().result("OK").build();
+        usersService.registerHandicappedInfo(user_id,registerRequest);
+        return HandicapRegisterResponse.builder().result("OK").build();
     }
 
     /**
@@ -146,8 +139,7 @@ public class Controller {
     public CheckInResponse checkin(@RequestBody CheckInRequest checkInRequest){
         logger.info("CheckIn API: {}", checkInRequest.getToken());
         String user_id = tokenService.getUserId(checkInRequest.getToken());
-        GeometryDto location = GeometryDto.builder().x_geometry(checkInRequest.getX_geometry()).y_geometry(checkInRequest.getY_geometry()).build();
-        matchingService.updateMyGeometry(user_id,location,1);
+        matchingService.updateMyGeometry(user_id,checkInRequest);
         logger.info("CheckIn API user_id : {}", user_id);
         return CheckInResponse.builder().result("OK").build();
     }
@@ -157,8 +149,7 @@ public class Controller {
     public CheckInResponse checkout(@RequestBody CheckInRequest checkInRequest){
         logger.info("CheckIn API: {}", checkInRequest.getToken());
         String user_id = tokenService.getUserId(checkInRequest.getToken());
-        GeometryDto location = GeometryDto.builder().x_geometry(checkInRequest.getX_geometry()).y_geometry(checkInRequest.getY_geometry()).build();
-        matchingService.updateMyGeometry(user_id,location,0);
+        matchingService.updateMyGeometry(user_id,checkInRequest);
         return CheckInResponse.builder().result("OK").build();
     }
 
@@ -173,8 +164,8 @@ public class Controller {
         // 障害者の位置情報を更新
         String user_id = tokenService.getUserId(request.getToken());
         // 障害者の障害情報リストを取得
-        List<HandicapInfoDto> handicapInfoList = usersService.getMyHandicapList(user_id);
-        return MyHandicapInfoResponse.builder().handicapInfoDtoList(handicapInfoList).build();
+        List<HandicapInfo> handicapInfoList = usersService.getMyHandicapList(user_id);
+        return MyHandicapInfoResponse.builder().handicapInfoList(handicapInfoList).build();
     }
 
     /**
@@ -186,29 +177,13 @@ public class Controller {
         logger.info("help API: {}", helpRequest.toString());
         // 障害者の位置情報を更新
         String user_id = tokenService.getUserId(helpRequest.getToken());
-        GeometryDto location = GeometryDto.builder()
-                .x_geometry(helpRequest.getX_geometry())
-                .y_geometry(helpRequest.getY_geometry())
-                .build();
-        matchingService.updateMyGeometry(user_id,location,1);
-        // 障害者の障害情報を取得
-        HandicapInfoDto handicapInfo = usersService.getHandicappedInfo(helpRequest.getHandicapinfo_id());
-        HelpDto helpDto = HelpDto.builder()
-                .handicapped_id(user_id)
-                .volunteer_id(null)
-                .reliability_th(handicapInfo.getReliability_th())
-                .severity(handicapInfo.getSeverity())
-                .location(location.getPoint())
-                .help_geometry(location)
-                .comment(handicapInfo.getComment())
-                .status(1)
-                .build();
-        matchingService.help(helpDto);
+        HandicapInfo handicapInfo = usersService.getHandicappedInfo(helpRequest.getHandicapinfo_id());
+        matchingService.help(user_id, helpRequest, handicapInfo);
 
         // 対象ボランティアの抽出（マッチング）
         // 近くにいる人達を検索する。
         // 他の障害者、ボランティア混在しているが、助けられる人が助ければよいので分ける必要は無いと思う。
-        List<NeighborDistanceDto> neighborsList = matchingService.getNeigborhood(user_id, location.getPoint());
+        //List<NeighborDistanceDto> neighborsList = matchingService.getNeigborhood(user_id, location.getPoint());
         // 対象ボランティアへのpush通知(python APIを使う)
         return HelpResponse.builder().result("OK").build();
     }
@@ -222,7 +197,7 @@ public class Controller {
     @ResponseBody
     public HelpDetailResponse helpDetail(@RequestBody HelpDetailRequest helpDetailRequest){
         logger.info("HelpDetail API: {}", helpDetailRequest.getHelp_id());
-
+        // 未実装
         return HelpDetailResponse.builder()
                 .helpId(1)
                 .xGeometry("xxxx.xxxx")
@@ -242,7 +217,7 @@ public class Controller {
     public AcceptResponse accept(@RequestBody AcceptRequest acceptRequest){
         logger.info("accept API: {}", acceptRequest.getHelp_id());
         String user_id = tokenService.getUserId(acceptRequest.getToken());
-        GeometryDto geo = matchingService.getMyGeometry(user_id);
+        Location geo = matchingService.getMyGeometry(user_id);
         matchingService.accept(acceptRequest.getHelp_id(),user_id);
 
         return AcceptResponse.builder()
@@ -277,7 +252,7 @@ public class Controller {
         String user_id = tokenService.getUserId(historyRequest.getToken());
 
         Integer get_limit = 10;
-        List<VolunteerHistoryDto> volunteerHistory = usersService.getMyVolunteerHistory(user_id,get_limit);
+        List<VolunteerHistory> volunteerHistory = usersService.getMyVolunteerHistory(user_id,get_limit);
         return VolunteerHistoryResponse.builder()
                 .volunteerHistory(volunteerHistory)
                 .build();
