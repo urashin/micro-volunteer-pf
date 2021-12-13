@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.microvolunteer.platform.repository.dao.mapper.HelpMapper">
+    <select id="getHelpInfo" resultType="org.microvolunteer.platform.domain.resource.Help">
+    </select>
+    <insert id="registerHelp">
+        insert into Help(
+            handicapped_id
+            ,volunteer_id
+            ,location
+            ,handicap_type
+            ,handicap_level
+            ,reliability_th
+            ,severity
+            ,comment
+            ,status)
+        values(
+            #{handicapped_id}
+            ,null
+            ,ST_GeomFromText(#{location})
+            ,handicap_type
+            ,handicap_level
+            ,${reliability_th}
+            ,${severity}
+            ,#{comment}
+            ,${status})
+    </insert>
+    <update id="registerMatching">
+        update MyGeometry set
+            volunteer_id = ${volunteer_id}
+            ,status = 2
+        where help_id = #{help_id} and status = 1
+    </update>
+    <update id="accept">
+        update Help set volunteer_id = #{volunteer_id}, status = 2
+        where help_id = ${help_id} and status = 1
+    </update>
+    <update id="closeHelp">
+        update MyGeometry set status = 0
+        where help_id = ${help_id} and status = 2
+    </update>
+    <select id="getHelp">
+        select CONVERT(ST_X(location),NCHAR), CONVERT(ST_Y(location),NCHAR)
+        from MyGeometry
+        where user_id = #{user_id}
+    </select>
+    <select id="getNeighborhood" resultType="org.microvolunteer.platform.domain.resource.NeighborDistance">
+        SELECT user_id,
+               ST_X(location) x_geometry,
+               ST_Y(location) y_geometry,
+               ST_Distance(location, ST_GeomFromText('${location}')) distance
+        FROM MyGeometry
+        WHERE
+            user_id != #{my_id} AND status = 1
+        order by distance LIMIT 5;
+    </select>
+</mapper>
