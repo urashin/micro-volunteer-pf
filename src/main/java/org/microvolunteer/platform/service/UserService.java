@@ -2,6 +2,7 @@ package org.microvolunteer.platform.service;
 
 import org.microvolunteer.platform.domain.resource.request.HandicapRegisterRequest;
 import org.microvolunteer.platform.domain.resource.*;
+import org.microvolunteer.platform.domain.resource.request.RegisterRequest;
 import org.microvolunteer.platform.repository.dao.mapper.HandicapInfoRegisterMapper;
 import org.microvolunteer.platform.repository.dao.mapper.ThanksMapper;
 import org.microvolunteer.platform.repository.dao.mapper.UserMapper;
@@ -9,39 +10,40 @@ import org.microvolunteer.platform.domain.dto.GeometryDto;
 import org.microvolunteer.platform.domain.resource.request.ThanksRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.UUID;
 
 
 @Service
-public class UsersService {
+public class UserService {
+    @Autowired
     private UserMapper userMapper;
-    private ThanksMapper thanksMapper;
-    private HandicapInfoRegisterMapper handicapInfoRegisterMapper;
-    private MatchingService matchingService;
 
     @Autowired
-    public UsersService(
-            UserMapper userMapper
-            ,ThanksMapper thanksMapper
-            ,HandicapInfoRegisterMapper handicapInfoRegisterMapper
-            ,MatchingService matchingService
-    ) {
-        this.userMapper = userMapper;
-        this.thanksMapper = thanksMapper;
-        this.handicapInfoRegisterMapper = handicapInfoRegisterMapper;
-        this.matchingService= matchingService;
-    }
+    private ThanksMapper thanksMapper;
 
+    @Autowired
+    private HandicapInfoRegisterMapper handicapInfoRegisterMapper;
+
+    @Autowired
+    private MatchingService matchingService;
+
+    /*
+     * ユーザーの新規作成（ユーザー情報は空）
+     * 1 user_idの作成
+     * 2 x,yの初期座標(mygeometry)作成
+     * 3 user_id & MyGeometryの登録
+     */
     public String createUser() {
         UUID uuid = UUID.randomUUID();
         userMapper.registerUserProperty(
                 RegisterUserProperty.builder()
                         .user_id(uuid.toString())
-                        .email("mail")
-                        .password("pass")
-                        .name("name")
+                        .email("")
+                        .password("")
+                        .name("")
                         .status(0)
                         .build()
         );
@@ -52,6 +54,17 @@ public class UsersService {
         Integer status = 0;
         matchingService.insertMyGeometry(uuid.toString(), location, status);
         return uuid.toString();
+    }
+
+    /*
+     *
+     */
+    public void registerUserInfo(String user_id,RegisterRequest registerRequest) {
+        userMapper.registerUserProperty(RegisterUserProperty.builder()
+                .user_id(user_id)
+                .name(registerRequest.getName())
+                .email(registerRequest.getEmail())
+                .build());
     }
 
     /**

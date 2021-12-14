@@ -9,7 +9,7 @@ import org.microvolunteer.platform.domain.resource.VolunteerHistory;
 import org.microvolunteer.platform.service.MatchingService;
 import org.microvolunteer.platform.service.SnsIdRegisterService;
 import org.microvolunteer.platform.service.TokenService;
-import org.microvolunteer.platform.service.UsersService;
+import org.microvolunteer.platform.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,23 +23,18 @@ import java.util.List;
 @Slf4j
 public class Controller {
     private Logger logger = LoggerFactory.getLogger(Controller.class);
-    private UsersService usersService;
-    private MatchingService matchingService;
-    private TokenService tokenService;
-    private SnsIdRegisterService snsIdRegisterService;
 
     @Autowired
-    public Controller(
-              UsersService usersService
-            , MatchingService matchingService
-            , TokenService tokenService
-            , SnsIdRegisterService snsIdRegisterService
-    ) {
-        this.usersService = usersService;
-        this.matchingService = matchingService;
-        this.tokenService = tokenService;
-        this.snsIdRegisterService = snsIdRegisterService;
-    }
+    private UserService userService;
+
+    @Autowired
+    private MatchingService matchingService;
+
+    @Autowired
+    private TokenService tokenService;
+
+    @Autowired
+    private SnsIdRegisterService snsIdRegisterService;
 
     /**
      * Pythonで実装
@@ -50,7 +45,7 @@ public class Controller {
     @GetMapping("/user/login")
     @ResponseBody
     public LoginResponse login(@RequestBody LoginRequest loginRequest){
-        logger.info("ログインAPI: {}", loginRequest.getUser_id());
+        logger.info("ログインAPI");
 
         return LoginResponse.builder().token("tokenXXXXXXXXXXXXXXXXXXXX").build();
     }
@@ -77,7 +72,7 @@ public class Controller {
     public SnsRegisterResponse snsRegister(@RequestBody SnsRegisterRequest snsRegisterRequest){
         logger.info("sns register API: {}", snsRegisterRequest.getSns_id());
         // 1) user_id を新規発行（個々の情報はパスワード設定など、個別に設定）
-        String user_id = usersService.createUser();
+        String user_id = userService.createUser();
 
         // 2) session 管理のトークンを発行
         String token = tokenService.createToken(user_id);
@@ -101,6 +96,7 @@ public class Controller {
         logger.info("register API: {}", registerRequest.getEmail());
         // tokenからuser_idを取得
         String user_id = tokenService.getUserId(registerRequest.getToken());
+        userService.registerUserInfo(user_id,registerRequest);
         // email, passwordを登録する
         return UserRegisterResponse.builder().result("OK").build();
     }
@@ -116,7 +112,7 @@ public class Controller {
     public HandicapRegisterResponse handicap_register(@RequestBody HandicapRegisterRequest registerRequest){
         logger.info("handicap register API: {}", registerRequest.getHandicap_level());
         String user_id = tokenService.getUserId(registerRequest.getToken());
-        usersService.registerHandicappedInfo(user_id,registerRequest);
+        userService.registerHandicappedInfo(user_id,registerRequest);
         return HandicapRegisterResponse.builder().result("OK").build();
     }
 
@@ -164,7 +160,7 @@ public class Controller {
         // 障害者の位置情報を更新
         String user_id = tokenService.getUserId(request.getToken());
         // 障害者の障害情報リストを取得
-        List<HandicapInfo> handicapInfoList = usersService.getMyHandicapList(user_id);
+        List<HandicapInfo> handicapInfoList = userService.getMyHandicapList(user_id);
         return MyHandicapInfoResponse.builder().handicapInfoList(handicapInfoList).build();
     }
 
@@ -177,7 +173,7 @@ public class Controller {
         logger.info("help API: {}", helpRequest.toString());
         // 障害者の位置情報を更新
         String user_id = tokenService.getUserId(helpRequest.getToken());
-        HandicapInfo handicapInfo = usersService.getHandicappedInfo(helpRequest.getHandicapinfo_id());
+        HandicapInfo handicapInfo = userService.getHandicappedInfo(helpRequest.getHandicapinfo_id());
         matchingService.help(user_id, helpRequest, handicapInfo);
 
         // 対象ボランティアの抽出（マッチング）
@@ -236,7 +232,7 @@ public class Controller {
         logger.info("thanks API: {}", thanksRequest.getHelp_id());
         String user_id = tokenService.getUserId(thanksRequest.getToken());
 
-        usersService.thanks(thanksRequest, user_id);
+        userService.thanks(thanksRequest, user_id);
         return ThanksResponse.builder()
                 .result("OK")
                 .build();
@@ -252,7 +248,7 @@ public class Controller {
         String user_id = tokenService.getUserId(historyRequest.getToken());
 
         Integer get_limit = 10;
-        List<VolunteerHistory> volunteerHistory = usersService.getMyVolunteerHistory(user_id,get_limit);
+        List<VolunteerHistory> volunteerHistory = userService.getMyVolunteerHistory(user_id,get_limit);
         return VolunteerHistoryResponse.builder()
                 .volunteerHistory(volunteerHistory)
                 .build();

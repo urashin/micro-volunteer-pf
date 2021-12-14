@@ -13,7 +13,7 @@
                 ,h.handicap_level
                 ,${satisfaction}
                 ,${status}
-                from help h where h.help_id = ${help_id} and h.volunteer_id = #{volunteer_id}
+                from Help h where h.help_id = ${help_id} and h.volunteer_id = #{volunteer_id}
     </insert>
     <select id="getMyVolunteerHistory" resultType="org.microvolunteer.platform.domain.resource.VolunteerHistory">
         select
