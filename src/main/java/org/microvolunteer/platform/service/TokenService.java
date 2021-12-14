@@ -8,14 +8,8 @@ import java.util.UUID;
 
 @Service
 public class TokenService {
-    private TokenMapper tokenMapper;
-
     @Autowired
-    public TokenService (
-            TokenMapper tokenMapper
-    ) {
-        this.tokenMapper = tokenMapper;
-    }
+    private TokenMapper tokenMapper;
 
     public String createToken(String user_id) {
         UUID token = UUID.randomUUID();
