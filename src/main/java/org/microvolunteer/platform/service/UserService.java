@@ -114,8 +114,8 @@ public class UserService {
     /**
      * 助けてもらったお礼、評価
      */
-    public void thanks(ThanksRequest thanks, String volunteer_id) {
-        thanksMapper.thanks(thanks.getHelp_id(),volunteer_id,thanks.getEvaluate(),1);
+    public void thanks(ThanksRequest thanks, String handicapped_id) {
+        thanksMapper.thanks(thanks.getHelp_id(),handicapped_id,thanks.getEvaluate(),1);
     }
 
     /**

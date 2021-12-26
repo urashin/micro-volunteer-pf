@@ -7,6 +7,6 @@ import java.util.List;
 
 @Mapper
 public interface ThanksMapper {
-    public void thanks(Integer help_id, String volunteer_id, Integer satisfaction, Integer status);
+    public void thanks(Integer help_id, String handicapped_id, Integer satisfaction, Integer status);
     public List<VolunteerHistory> getMyVolunteerHistory(String volunteer_id, Integer get_limit);
 }
