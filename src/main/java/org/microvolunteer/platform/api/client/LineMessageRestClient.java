@@ -33,6 +33,12 @@ public class LineMessageRestClient {
     @Value("${line-message.ignore_button_uri}")
     private String ignore_button_uri;
 
+    @Value("${line-message.accept_button_label}")
+    private String accept_button_label;
+
+    @Value("${line-message.ignore_button_label}")
+    private String ignore_button_label;
+
     public void request(String sns_id, NeighborDistance neighborDistance, HandicapInfo handicapInfo) {
         RestTemplate restTemplate = new RestTemplate();
 
@@ -58,12 +64,12 @@ public class LineMessageRestClient {
          */
         LineLocationMessageRequest.LineMessageAction messageAction_accept =
                 LineLocationMessageRequest.LineMessageAction.builder()
-                        .text("I will help you!")
+                        .text(accept_button_label)
                         .link(accept_button_uri)
                         .build();
         LineLocationMessageRequest.LineMessageAction messageAction_ignore =
                 LineLocationMessageRequest.LineMessageAction.builder()
-                        .text("I can't help you now.")
+                        .text(ignore_button_label)
                         .link(ignore_button_uri)
                         .build();
         LineLocationMessageRequest.LineMessageActions messageActions
@@ -80,7 +86,7 @@ public class LineMessageRestClient {
                 .location_message(
                         LineLocationMessageRequest.LineLocationMessage.builder()
                                 .title("Help!")
-                                .address("behind you!")
+                                .address("近く")
                                 .longitude(Double.valueOf(neighborDistance.getY_geometry()))
                                 .latitude(Double.valueOf(neighborDistance.getX_geometry()))
                                 .build()
