@@ -70,7 +70,7 @@ public class Controller {
     @GetMapping("/user/sns_register")
     @ResponseBody
     public SnsRegisterResponse snsRegister(@RequestBody SnsRegisterRequest snsRegisterRequest){
-        logger.info("sns register API: {}", snsRegisterRequest.getSns_id());
+        logger.info("sns register API");
         // 1) user_id を新規発行（個々の情報はパスワード設定など、個別に設定）
         String user_id = userService.createUser();
 
@@ -93,7 +93,7 @@ public class Controller {
     @PostMapping("/user/register")
     @ResponseBody
     public UserRegisterResponse register(@RequestBody RegisterRequest registerRequest){
-        logger.info("register API: {}", registerRequest.getEmail());
+        logger.info("register API");
         // tokenからuser_idを取得
         String user_id = tokenService.getUserId(registerRequest.getToken());
         userService.registerUserInfo(user_id,registerRequest);
@@ -110,7 +110,7 @@ public class Controller {
     @PostMapping("/user/handicap/register")
     @ResponseBody
     public HandicapRegisterResponse handicap_register(@RequestBody HandicapRegisterRequest registerRequest){
-        logger.info("handicap register API: {}", registerRequest.getHandicap_level());
+        logger.info("handicap register API");
         String user_id = tokenService.getUserId(registerRequest.getToken());
         userService.registerHandicappedInfo(user_id,registerRequest);
         return HandicapRegisterResponse.builder().result("OK").build();
@@ -133,17 +133,16 @@ public class Controller {
     @PostMapping("/matching/checkin")
     @ResponseBody
     public CheckInResponse checkin(@RequestBody CheckInRequest checkInRequest){
-        logger.info("CheckIn API: {}", checkInRequest.getToken());
+        logger.info("CheckIn API");
         String user_id = tokenService.getUserId(checkInRequest.getToken());
         matchingService.updateMyGeometry(user_id,checkInRequest);
-        logger.info("CheckIn API user_id : {}", user_id);
         return CheckInResponse.builder().result("OK").build();
     }
 
     @PostMapping("/matching/checkout")
     @ResponseBody
     public CheckInResponse checkout(@RequestBody CheckInRequest checkInRequest){
-        logger.info("CheckIn API: {}", checkInRequest.getToken());
+        logger.info("CheckIn API");
         String user_id = tokenService.getUserId(checkInRequest.getToken());
         matchingService.updateMyGeometry(user_id,checkInRequest);
         return CheckInResponse.builder().result("OK").build();
@@ -170,17 +169,16 @@ public class Controller {
     @PostMapping("/matching/help")
     @ResponseBody
     public HelpResponse help(@RequestBody HelpRequest helpRequest){
-        logger.info("help API: {}", helpRequest.toString());
+        logger.info("help API");
         // 障害者の位置情報を更新
         String user_id = tokenService.getUserId(helpRequest.getToken());
         HandicapInfo handicapInfo = userService.getHandicappedInfo(helpRequest.getHandicapinfo_id());
         matchingService.help(user_id, helpRequest, handicapInfo);
 
-        // 対象ボランティアの抽出（マッチング）
-        // 近くにいる人達を検索する。
+        // help
+        // 対象ボランティアの抽出：近くにいる人達を検索する。
         // 他の障害者、ボランティア混在しているが、助けられる人が助ければよいので分ける必要は無いと思う。
-        //List<NeighborDistanceDto> neighborsList = matchingService.getNeigborhood(user_id, location.getPoint());
-        // 対象ボランティアへのpush通知(python APIを使う)
+        // 対象ボランティアに救援要請のpush通知を行う(python APIを使う)
         return HelpResponse.builder().result("OK").build();
     }
 
