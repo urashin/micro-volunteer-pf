@@ -10,5 +10,5 @@ import java.util.List;
 public interface HandicapInfoRegisterMapper {
     void registerHandicapInfo(RegisterHandicapInfo handicapInfo);
     HandicapInfo getHandicapInfo(Integer handicapinfo_id);
-    List<HandicapInfo> getHandicapInfoList(String handicapped_id);
+    List<HandicapInfo> getHandicapList(String handicapped_id);
 }
