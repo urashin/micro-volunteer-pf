@@ -107,7 +107,7 @@ public class UserService {
      * @param handicapped_id
      */
     public List<HandicapInfo> getMyHandicapList(String handicapped_id) {
-        List<HandicapInfo> handicaplist = handicapInfoRegisterMapper.getHandicapInfoList(handicapped_id);
+        List<HandicapInfo> handicaplist = handicapInfoRegisterMapper.getHandicapList(handicapped_id);
         return handicaplist;
     }
 
