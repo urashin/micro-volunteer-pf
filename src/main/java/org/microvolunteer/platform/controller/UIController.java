@@ -1,6 +1,7 @@
 package org.microvolunteer.platform.controller;
 
 import org.microvolunteer.platform.api.client.LineMessageRestClient;
+import org.microvolunteer.platform.domain.resource.MyActivity;
 import org.microvolunteer.platform.domain.resource.VolunteerHistory;
 import org.microvolunteer.platform.repository.dao.mapper.SnsRegisterMapper;
 import org.microvolunteer.platform.service.MatchingService;
@@ -59,7 +60,7 @@ public class UIController {
     public String volunteer_history(@PathVariable String sns_id, Model model) {
         logger.info("line_thanks");
         String volunteer_id = tokenService.getUserIdBySnsId(sns_id);
-        List<VolunteerHistory> history = userService.getMyVolunteerHistory(volunteer_id, 10);
+        List<MyActivity> history = userService.getMyActivities(volunteer_id, 10);
         model.addAttribute("history", history);
         return "my_history";
     }

@@ -1,5 +1,6 @@
 package org.microvolunteer.platform.service;
 
+import org.microvolunteer.platform.domain.dto.ActivityDto;
 import org.microvolunteer.platform.domain.resource.request.HandicapRegisterRequest;
 import org.microvolunteer.platform.domain.resource.*;
 import org.microvolunteer.platform.domain.resource.request.RegisterRequest;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -123,8 +125,18 @@ public class UserService {
      * @param volunteer_id
      * @param get_limit
      */
+    public List<MyActivity> getMyActivities(String volunteer_id, Integer get_limit) {
+        List<VolunteerHistory> historyList = thanksMapper.getMyVolunteerHistory(volunteer_id,get_limit);
+        List<MyActivity>  myActivities = new ArrayList<>();
+        for (VolunteerHistory history : historyList) {
+            MyActivity activity = ActivityDto.getActivity(history);
+            myActivities.add(activity);
+        }
+        return myActivities;
+    }
+
     public List<VolunteerHistory> getMyVolunteerHistory(String volunteer_id, Integer get_limit) {
-        List<VolunteerHistory> history = thanksMapper.getMyVolunteerHistory(volunteer_id,get_limit);
-        return history;
+        List<VolunteerHistory> historyList = thanksMapper.getMyVolunteerHistory(volunteer_id,get_limit);
+        return historyList;
     }
 }
