@@ -21,6 +21,7 @@
             ST_X(vh.location) y_geometry
             ,ST_Y(vh.location) x_geometry
             ,ca.area_name
+            ,DATE_FORMAT(vh.created_at, '%Y/%m/%d %H:%i') datetime
             ,vh.handicap_type
             ,vh.handicap_level
             ,vh.satisfaction
