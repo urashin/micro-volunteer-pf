@@ -111,11 +111,11 @@ public class UserService {
         return handicaplist;
     }
 
-    /**
+    /*
      * 助けてもらったお礼、評価
      */
-    public void thanks(ThanksRequest thanks, String handicapped_id) {
-        thanksMapper.thanks(thanks.getHelp_id(),handicapped_id,thanks.getEvaluate(),1);
+    public void thanks(Integer help_id, String handicapped_id, Integer satisfaction) {
+        thanksMapper.thanks(help_id,handicapped_id,satisfaction,1);
     }
 
     /**

@@ -10,6 +10,7 @@
             handicapped_id
             ,volunteer_id
             ,location
+            ,area_id
             ,handicap_type
             ,handicap_level
             ,reliability_th
@@ -20,27 +21,43 @@
             #{handicapped_id}
             ,null
             ,ST_GeomFromText(#{location})
-            ,handicap_type
-            ,handicap_level
-            ,${reliability_th}
-            ,${severity}
+            ,#{area_id}
+            ,#{handicap_type}
+            ,#{handicap_level}
+            ,#{reliability_th}
+            ,#{severity}
             ,#{comment}
-            ,${status})
+            ,#{status})
     </insert>
     <update id="registerMatching">
         update MyGeometry set
-            volunteer_id = ${volunteer_id}
+            volunteer_id = #{volunteer_id}
             ,status = 2
         where help_id = #{help_id} and status = 1
     </update>
     <update id="accept">
         update Help set volunteer_id = #{volunteer_id}, status = 2
-        where help_id = ${help_id} and status = 1
+        where help_id = #{help_id} and status = 1
     </update>
     <update id="closeHelp">
         update MyGeometry set status = 0
-        where help_id = ${help_id} and status = 2
+        where help_id = #{help_id} and status = 2
     </update>
+    <select id="getHelpId" resultType="Integer">
+        select help_id
+        from Help
+        where handicapped_id = #{user_id} order by help_id DESC limit 1;
+    </select>
+    <select id="getVolunteerId" resultType="String">
+        select volunteer_id
+        from Help
+        where help_id = #{help_id};
+    </select>
+    <select id="getHandicappedId" resultType="String">
+        select handicapped_id
+        from Help
+        where help_id = #{help_id};
+    </select>
     <select id="getHelp">
         select CONVERT(ST_X(location),NCHAR), CONVERT(ST_Y(location),NCHAR)
         from MyGeometry
@@ -48,9 +65,9 @@
     </select>
     <select id="getNeighborhood" resultType="org.microvolunteer.platform.domain.resource.NeighborDistance">
         SELECT user_id,
-               ST_X(location) x_geometry,
-               ST_Y(location) y_geometry,
-               ST_Distance(location, ST_GeomFromText('${location}')) distance
+               ST_X(location) y_geometry,
+               ST_Y(location) x_geometry,
+               ST_Distance(location, ST_GeomFromText(#{location},4326)) distance
         FROM MyGeometry
         WHERE
             user_id != #{my_id} AND status = 1

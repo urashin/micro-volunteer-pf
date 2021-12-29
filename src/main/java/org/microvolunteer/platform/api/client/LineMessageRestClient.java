@@ -39,9 +39,10 @@ public class LineMessageRestClient {
     @Value("${line-message.ignore_button_label}")
     private String ignore_button_label;
 
-    public void request(String sns_id, NeighborDistance neighborDistance, HandicapInfo handicapInfo) {
+    public void requestHelp(String sns_id, NeighborDistance neighborDistance, HandicapInfo handicapInfo) {
         RestTemplate restTemplate = new RestTemplate();
 
+        String accept_url = accept_button_uri + "/v1/line_accept/" + sns_id + "/" + handicapInfo.getHandicapinfo_id().toString();
         /*
          * LocationMessageDetailsリストの作成
          */
@@ -65,7 +66,7 @@ public class LineMessageRestClient {
         LineLocationMessageRequest.LineMessageAction messageAction_accept =
                 LineLocationMessageRequest.LineMessageAction.builder()
                         .text(accept_button_label)
-                        .link(accept_button_uri)
+                        .link(accept_url)
                         .build();
         LineLocationMessageRequest.LineMessageAction messageAction_ignore =
                 LineLocationMessageRequest.LineMessageAction.builder()
@@ -87,8 +88,8 @@ public class LineMessageRestClient {
                         LineLocationMessageRequest.LineLocationMessage.builder()
                                 .title("Help!")
                                 .address("近く")
-                                .longitude(Double.valueOf(neighborDistance.getY_geometry()))
-                                .latitude(Double.valueOf(neighborDistance.getX_geometry()))
+                                .longitude(Double.valueOf(neighborDistance.getX_geometry()))
+                                .latitude(Double.valueOf(neighborDistance.getY_geometry()))
                                 .build()
                 )
                 .action_message(
@@ -120,4 +121,61 @@ public class LineMessageRestClient {
         }
 
     }
+
+
+    public void requestThanks(String sns_id, Integer help_id) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String thanks_url = accept_button_uri + "/v1/line_thanks/" + sns_id + "/" + help_id.toString() + "/";
+        /*
+         * ボタンの作成
+         */
+        LineLocationMessageRequest.LineMessageAction messageAction_thanks =
+                LineLocationMessageRequest.LineMessageAction.builder()
+                        .text("Thanks!")
+                        .link(thanks_url + "5")
+                        .build();
+        LineLocationMessageRequest.LineMessageAction messageAction_unhappy =
+                LineLocationMessageRequest.LineMessageAction.builder()
+                        .text("unhappy")
+                        .link(thanks_url + "0")
+                        .build();
+        LineLocationMessageRequest.LineMessageActions messageActions
+                = LineLocationMessageRequest.LineMessageActions.builder()
+                .primary(messageAction_thanks)
+                .secondary(messageAction_unhappy)
+                .build();
+
+        /*
+         * RequestMessage本体の作成
+         */
+        LineLocationMessageRequest lineLocationMessage = LineLocationMessageRequest.builder()
+                .sns_id(sns_id)
+                .action_message(
+                        LineLocationMessageRequest.LineActionMessage.builder()
+                                .actions(messageActions)
+                                .build()
+                )
+                .build();
+
+        /*
+        Gson gson2 = new GsonBuilder().setPrettyPrinting().create();
+        String prettyJson = gson2.toJson(lineLocationMessage);
+        logger.info("LINE Message request {}", prettyJson);
+         */
+
+        try {
+
+            RequestEntity<LineLocationMessageRequest> request = RequestEntity
+                    .post(api_uri)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(lineLocationMessage);
+            ResponseEntity<LineLocationMessageResponse> response = restTemplate.exchange(request, LineLocationMessageResponse.class);
+        } catch (RestClientException e) {
+            logger.info("RestClient error : {}", e.toString());
+        }
+
+    }
+
 }

@@ -1,8 +1,11 @@
 package org.microvolunteer.platform.service;
 
 import org.microvolunteer.platform.api.client.LineMessageRestClient;
+import org.microvolunteer.platform.domain.dto.CheckinAreaDto;
 import org.microvolunteer.platform.domain.resource.request.CheckInRequest;
+import org.microvolunteer.platform.domain.resource.request.CheckinAreaRegisterRequest;
 import org.microvolunteer.platform.domain.resource.request.HelpRequest;
+import org.microvolunteer.platform.repository.dao.mapper.CheckinAreaMapper;
 import org.microvolunteer.platform.repository.dao.mapper.MyGeometryMapper;
 import org.microvolunteer.platform.repository.dao.mapper.HelpMapper;
 import org.microvolunteer.platform.domain.dto.GeometryDto;
@@ -32,6 +35,9 @@ public class MatchingService {
     @Autowired
     private LineMessageRestClient lineMessageRestClient;
 
+    @Autowired
+    private CheckinAreaMapper checkinAreaMapper;
+
     public Location getMyGeometry(String user_id) {
         Location location = myGeometryMapper.getMyGeometry(user_id);
         return location;
@@ -49,30 +55,34 @@ public class MatchingService {
      */
     public void updateMyGeometry(String user_id, CheckInRequest request) {
         String location = GeometryDto.getPoint(request.getX_geometry(),request.getY_geometry());
+        Integer area_id = checkinAreaMapper.getAreaId(location);
         Integer status = 1;
-        myGeometryMapper.updateMyGeometry(user_id, location, status);
+        myGeometryMapper.updateMyGeometry(user_id, location, area_id, status);
     }
 
     public void help(String my_id, HelpRequest request, HandicapInfo handicapInfo) {
         String location = GeometryDto.getPoint(
-                request.getY_geometry()
-                ,request.getX_geometry());
-        // 障害者の障害情報を取得
+                request.getX_geometry()
+                ,request.getY_geometry());
+        // area情報があれば取得
+        Integer area_id = checkinAreaMapper.getAreaId(location);
         Integer status = 1;
         RegisterHelp help = HelpDto.registerHelp(
                 my_id
                 ,handicapInfo
                 ,location
+                ,area_id
                 ,status);
 
         helpMapper.registerHelp(help);
+        //Integer help_id = helpMapper.getHelpId(my_id);
         // 対象ボランティアの抽出（マッチング）
         // 近くにいる人達を検索する。
         // 他の障害者、ボランティア混在しているが、助けられる人が助ければよいので分ける必要は無いと思う。
         List<NeighborDistance> neighborsList = helpMapper.getNeighborhood(my_id, location);
         for (NeighborDistance neighborDistance : neighborsList) {
             String sns_id = snsRegisterMapper.getSnsId(neighborDistance.getUser_id());
-            lineMessageRestClient.request(sns_id,neighborDistance,handicapInfo);
+            lineMessageRestClient.requestHelp(sns_id,neighborDistance,handicapInfo);
         }
     }
 
@@ -83,9 +93,20 @@ public class MatchingService {
 
     public void accept(Integer help_id, String volunteer_id) {
         helpMapper.accept(help_id,volunteer_id);
+
+        /*
+         * 障害者側にThanksボタンを表示
+         */
+        String handicappedId = helpMapper.getHandicappedId(help_id);
+        String handicapped_sns_id = snsRegisterMapper.getSnsId(handicappedId);
+        lineMessageRestClient.requestThanks(handicapped_sns_id,help_id);
     }
 
     public Help getHelpInfo(Integer help_id) {
         return helpMapper.getHelpInfo(help_id);
+    }
+
+    public void registerArea(CheckinAreaRegisterRequest request,String editor_id) {
+        checkinAreaMapper.insertArea(CheckinAreaDto.checkinArea(request,editor_id));
     }
 }

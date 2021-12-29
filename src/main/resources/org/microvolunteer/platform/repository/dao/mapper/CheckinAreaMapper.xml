@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.microvolunteer.platform.repository.dao.mapper.CheckinAreaMapper">
+    <insert id="insertArea">
+        insert into CheckinArea(area_name,location,radius,editor_id)
+        values(#{area_name},ST_GeomFromText(#{location},4326),#{radius},#{editor_id})
+    </insert>
+    <select id="getAreaId" resultType="int">
+        select area_id
+        from CheckinArea
+        where ST_Distance(location, ST_GeomFromText(#{location},4326)) &lt; radius limit 1
+    </select>
+</mapper>

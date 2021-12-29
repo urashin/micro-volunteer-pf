@@ -7,5 +7,5 @@ import org.microvolunteer.platform.domain.resource.Location;
 public interface MyGeometryMapper {
     Location getMyGeometry(String user_id);
     void insertMyGeometry(String user_id, String location, Integer status);
-    void updateMyGeometry(String user_id, String location, Integer status);
+    void updateMyGeometry(String user_id, String location, Integer area_id, Integer status);
 }
