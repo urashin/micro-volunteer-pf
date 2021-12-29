@@ -11,6 +11,9 @@ import java.util.List;
 public interface HelpMapper {
     void registerHelp(RegisterHelp help);
     Help getHelpInfo(Integer help_id);
+    Integer getHelpId(String user_id);
+    String getVolunteerId(Integer help_id);
+    String getHandicappedId(Integer help_id);
     //Integer countTargetVolunteers(Integer help_id); // 対象となるボランティア数をカウントする
     void accept(Integer help_id,String volunteer_id);
     //void closeHelp(Integer help_id);

@@ -1,0 +1,6 @@
+line-message:
+  api_uri: (LINE通知API)
+  accept_button_uri: (Acceptボタンが押された場合の遷移先ベースURL）
+  ignore_button_uri: (Ignoreボタンが押された場合の遷移先ベースURL）
+  accept_button_label: "いま行きます！"
+  ignore_button_label: "今は無理"

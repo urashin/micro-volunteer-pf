@@ -5,18 +5,19 @@
 <mapper namespace="org.microvolunteer.platform.repository.dao.mapper.MyGeometryMapper">
     <insert id="insertMyGeometry">
         insert into MyGeometry(user_id,location,status)
-        values(#{user_id},ST_GeomFromText(#{location}),${status})
+        values(#{user_id},ST_GeomFromText(#{location},4326),#{status})
     </insert>
     <update id="updateMyGeometry">
         update MyGeometry set
-            location = ST_GeomFromText(#{location})
-            ,status = ${status}
+            location = ST_GeomFromText(#{location},4326)
+            ,area_id = #{area_id}
+            ,status = #{status}
         where user_id = #{user_id}
     </update>
     <select id="getMyGeometry" resultType="org.microvolunteer.platform.domain.resource.Location">
         select
-               ST_X(location) x_geometry
-             , ST_Y(location) y_geometry
+               ST_X(location) y_geometry
+             , ST_Y(location) x_geometry
         from MyGeometry
         where user_id = #{user_id}
     </select>

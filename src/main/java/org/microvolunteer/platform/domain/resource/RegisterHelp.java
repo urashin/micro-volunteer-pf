@@ -14,6 +14,7 @@ public class RegisterHelp {
     private Integer reliability_th;
     private Integer severity;
     private String location;
+    private Integer area_id;
     private String comment;
     private Integer status;
 }

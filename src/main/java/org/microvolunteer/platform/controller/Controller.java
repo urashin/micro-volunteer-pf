@@ -228,9 +228,9 @@ public class Controller {
     @ResponseBody
     public ThanksResponse thanks(@RequestBody ThanksRequest thanksRequest){
         logger.info("thanks API: {}", thanksRequest.getHelp_id());
-        String user_id = tokenService.getUserId(thanksRequest.getToken());
+        String handicapped_id = tokenService.getUserId(thanksRequest.getToken());
 
-        userService.thanks(thanksRequest, user_id);
+        userService.thanks(thanksRequest.getHelp_id(),handicapped_id,thanksRequest.getEvaluate());
         return ThanksResponse.builder()
                 .result("OK")
                 .build();
@@ -250,6 +250,19 @@ public class Controller {
         return VolunteerHistoryResponse.builder()
                 .volunteerHistory(volunteerHistory)
                 .build();
+    }
+
+    /**
+     *
+     */
+    @PostMapping("/matching/area_register")
+    @ResponseBody
+    public String area_register(@RequestBody CheckinAreaRegisterRequest request){
+        logger.info("area_register API");
+        String user_id = tokenService.getUserId(request.getToken());
+
+        matchingService.registerArea(request,user_id);
+        return "OK";
     }
 
     @GetMapping("/kakunin")
