@@ -1,0 +1,40 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!--Import materialize.css-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link type="text/css" rel="stylesheet" th:href="@{/css/my.css}"  media="screen,projection"/>
+
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>micro-volunteer</title>
+</head>
+<body>
+<header>
+    <nav class="top-nav" style="text-align:center">
+        <h1 class="header"> login </h1>
+    </nav>
+</header>
+
+<div class="reg_form">
+    <!--/*@thymesVar id="loginRequest" type="java"*/-->
+    <form th:action="@{/v1/user/login}" method="post" th:object="${loginRequest}" class="col s12">
+        <div class="input-field col s6">
+            <i class="material-icons prefix">email</i>
+            <input th:field="*{email}" id="email" type="email" class="validate" >
+            <label for="email">email</label>
+        </div>
+        <div class="input-field">
+            <input th:field="*{password}" id="password" type="password" class="validate" >
+            <label for="password">password</label>
+        </div>
+        <button class="btn waves-effect waves-light" type="submit" name="action">Submit
+            <i class="material-icons right">send</i>
+        </button>
+    </form>
+</div>
+<!--script type="text/javascript" src="/js/materialize.min.js" th:src="@{/js/materialize.min.js}"></script-->
+</body>
+</html>
