@@ -3,6 +3,7 @@ package org.microvolunteer.platform.controller;
 import org.microvolunteer.platform.api.client.LineMessageRestClient;
 import org.microvolunteer.platform.domain.resource.MyActivity;
 import org.microvolunteer.platform.domain.resource.VolunteerHistory;
+import org.microvolunteer.platform.domain.resource.request.LoginRequest;
 import org.microvolunteer.platform.repository.dao.mapper.SnsRegisterMapper;
 import org.microvolunteer.platform.service.MatchingService;
 import org.microvolunteer.platform.service.TokenService;
@@ -39,6 +40,13 @@ public class UIController {
 
     @Autowired
     private LineMessageRestClient lineMessageRestClient;
+
+    @GetMapping("/user/login")
+    public String login(Model model) {
+        logger.info("login");
+        model.addAttribute(new LoginRequest());
+        return "login_form";
+    }
 
     @GetMapping("/line_accept/{sns_id}/{help_id}")
     public String accept(@PathVariable String sns_id, @PathVariable Integer help_id) {

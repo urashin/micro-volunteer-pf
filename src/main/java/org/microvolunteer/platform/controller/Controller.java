@@ -13,6 +13,7 @@ import org.microvolunteer.platform.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -42,12 +43,19 @@ public class Controller {
      */
     @PostMapping("/user/login")
     @ResponseBody
-    public LoginResponse login(@RequestBody LoginRequest loginRequest){
+    public LoginResponse login(LoginRequest loginRequest){
         logger.info("ログインAPI");
         String token = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
         return LoginResponse.builder().token(token).build();
     }
 
+    @PostMapping("/user/app_login")
+    @ResponseBody
+    public LoginResponse login_debug(@RequestBody LoginRequest loginRequest){
+        logger.info("App ログインAPI");
+        String token = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
+        return LoginResponse.builder().token(token).build();
+    }
     /*
      * LINE Bot起点のユーザー登録処理
      * [1] LINE Bot"microvlunteer（マイクロボランティア）"を友達登録
