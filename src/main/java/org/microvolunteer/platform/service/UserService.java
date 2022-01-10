@@ -3,15 +3,14 @@ package org.microvolunteer.platform.service;
 import org.microvolunteer.platform.domain.dto.ActivityDto;
 import org.microvolunteer.platform.domain.resource.request.HandicapRegisterRequest;
 import org.microvolunteer.platform.domain.resource.*;
-import org.microvolunteer.platform.domain.resource.request.RegisterRequest;
+import org.microvolunteer.platform.domain.resource.request.RegisterUserRequest;
 import org.microvolunteer.platform.repository.dao.mapper.HandicapInfoRegisterMapper;
 import org.microvolunteer.platform.repository.dao.mapper.ThanksMapper;
 import org.microvolunteer.platform.repository.dao.mapper.UserMapper;
 import org.microvolunteer.platform.domain.dto.GeometryDto;
-import org.microvolunteer.platform.domain.resource.request.ThanksRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +31,9 @@ public class UserService {
     @Autowired
     private MatchingService matchingService;
 
+    @Value("${encrypt.volunteerdb.key}")
+    private String encrypt_key;
+
     /*
      * ユーザーの新規作成（ユーザー情報は空）
      * 1 user_idの作成
@@ -42,9 +44,10 @@ public class UserService {
         UUID uuid = UUID.randomUUID();
         userMapper.registerUserProperty(
                 RegisterUserProperty.builder()
+                        .encrypt_key(encrypt_key)
                         .user_id(uuid.toString())
                         .email("")
-                        .password("")
+                        .password("password")
                         .name("")
                         .status(0)
                         .build()
@@ -61,12 +64,35 @@ public class UserService {
     /*
      *
      */
-    public void registerUserInfo(String user_id,RegisterRequest registerRequest) {
-        userMapper.registerUserProperty(RegisterUserProperty.builder()
+    public void registerUserInfo(
+            String user_id,
+            String user_name,
+            String user_email,
+            String user_password) {
+        userMapper.updateUserProperty(
+                RegisterUserProperty.builder()
+                .encrypt_key(encrypt_key)
                 .user_id(user_id)
-                .name(registerRequest.getName())
-                .email(registerRequest.getEmail())
+                .name(user_name)
+                .email(user_email)
+                .password(user_password)
+                .status(1)
                 .build());
+    }
+
+    /*
+     *
+     */
+    public String login(
+            String email,
+            String password) {
+        String token = userMapper.login(
+                Login.builder()
+                        .encrypt_key(encrypt_key)
+                        .email(email)
+                        .password(password)
+                        .build());
+        return token;
     }
 
     /**

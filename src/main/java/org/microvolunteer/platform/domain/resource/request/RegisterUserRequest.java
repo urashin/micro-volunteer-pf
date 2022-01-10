@@ -7,7 +7,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 @Data
-public class RegisterRequest {
+public class RegisterUserRequest {
     @NotNull
     @Size(min=16, max=64)
     private String token;

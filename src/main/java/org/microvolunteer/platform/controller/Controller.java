@@ -37,17 +37,15 @@ public class Controller {
     private SnsIdRegisterService snsIdRegisterService;
 
     /**
-     * Pythonで実装
-     * ☆token発行（時間あればつくる、なければ固定のtokenでおこなう）
      * @param loginRequest
      * @return
      */
-    @GetMapping("/user/login")
+    @PostMapping("/user/login")
     @ResponseBody
     public LoginResponse login(@RequestBody LoginRequest loginRequest){
         logger.info("ログインAPI");
-
-        return LoginResponse.builder().token("tokenXXXXXXXXXXXXXXXXXXXX").build();
+        String token = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
+        return LoginResponse.builder().token(token).build();
     }
 
     /*
@@ -87,17 +85,20 @@ public class Controller {
      * [4] /user/register APIでemail, password, nameを登録
      * sns_idもしくはonetimeurlにより、tokenは取得できている状態
      *
-     * @param registerRequest
+     * @param registerUserRequest
      * @return
      */
     @PostMapping("/user/register")
     @ResponseBody
-    public UserRegisterResponse register(@RequestBody RegisterRequest registerRequest){
+    public UserRegisterResponse register(@RequestBody RegisterUserRequest registerUserRequest){
         logger.info("register API");
         // tokenからuser_idを取得
-        String user_id = tokenService.getUserId(registerRequest.getToken());
-        userService.registerUserInfo(user_id,registerRequest);
-        // email, passwordを登録する
+        String user_id = tokenService.getUserId(registerUserRequest.getToken());
+        userService.registerUserInfo(
+                user_id,
+                registerUserRequest.getName(),
+                registerUserRequest.getEmail(),
+                registerUserRequest.getPassword());
         return UserRegisterResponse.builder().result("OK").build();
     }
 

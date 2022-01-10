@@ -4,3 +4,7 @@ line-message:
   ignore_button_uri: (Ignoreボタンが押された場合の遷移先ベースURL）
   accept_button_label: "いま行きます！"
   ignore_button_label: "今は無理"
+
+encrypt:
+  volunteerdb:
+    key: '任意の暗号化キーに置き換えてください'

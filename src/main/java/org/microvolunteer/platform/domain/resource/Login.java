@@ -5,11 +5,8 @@ import lombok.Data;
 
 @Data
 @Builder
-public class RegisterUserProperty {
+public class Login {
     private String encrypt_key;
-    private String user_id;
-    private String name;
-    private String password;
     private String email;
-    private Integer status;
+    private String password;
 }
