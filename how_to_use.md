@@ -10,7 +10,7 @@
 |  /v1/matching/checkin | 商業施設や観光スポットなどでの位置情報登録（スポット付近にいます） |
 |  /v1/matching/checkout | 商業施設や観光スポットからの離脱（もう付近にはいません） |
 |  /v1/matching/help| 付近にいる可能性の高いボランティアに助けを求める |
-|  /v1/matching/accetp| 自分に届いたhelpに応じる |
+|  /v1/matching/accept| 自分に届いたhelpに応じる |
 |  /v1/matching/helpdetail | マッチング相手の情報を参照 |
 |  /v1/user/thanks | 助けてもらった後のお礼 |
 |  /v1/user/history | ボランティア履歴の取得 |
