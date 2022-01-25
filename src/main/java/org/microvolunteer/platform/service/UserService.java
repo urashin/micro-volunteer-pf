@@ -86,13 +86,13 @@ public class UserService {
     public String login(
             String email,
             String password) {
-        String token = userMapper.login(
+        String user_id = userMapper.login(
                 Login.builder()
                         .encrypt_key(encrypt_key)
                         .email(email)
                         .password(password)
                         .build());
-        return token;
+        return user_id;
     }
 
     /**

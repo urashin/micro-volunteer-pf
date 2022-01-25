@@ -50,6 +50,9 @@ public class TokenService {
         return tokenMapper.getUserId(token);
     }
 
+    public String getTokenByUserId(String user_id) {
+        return tokenMapper.getTokenByUserId(user_id);
+    }
     public String getUserIdBySnsId(String sns_id) {
         return snsRegisterMapper.getUserId(sns_id);
     }

@@ -6,4 +6,5 @@ import org.apache.ibatis.annotations.Mapper;
 public interface TokenMapper {
     void registerToken(String session_id,String user_id);
     String getUserId(String token);
+    String getTokenByUserId(String user_id);
 }

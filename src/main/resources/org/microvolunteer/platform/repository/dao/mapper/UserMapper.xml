@@ -19,7 +19,7 @@
                #{user_id}
                ,#{name}
                ,#{email}
-               ,hex(aes_encrypt(MD5(#{password}),#{encrypt_key}))
+               ,hex(aes_encrypt(SHA2(#{password}, 512),#{encrypt_key}))
                ,#{status}
               )
     </insert>
@@ -27,7 +27,7 @@
         update Users set
             name = #{name}
             ,email = #{email}
-            ,password = hex(aes_encrypt(MD5(#{password}),#{encrypt_key}))
+            ,password = hex(aes_encrypt(SHA2(#{password}, 512),#{encrypt_key}))
             ,status = #{status}
         where user_id = #{user_id}
     </update>
@@ -41,6 +41,6 @@
           and
               Users.status = 1
           and
-              MD5(#{password}) = convert(aes_decrypt(unhex(password),#{encrypt_key}) using utf8);
+              SHA2(#{password}, 512) = convert(aes_decrypt(unhex(password),#{encrypt_key}) using utf8);
     </select>
 </mapper>

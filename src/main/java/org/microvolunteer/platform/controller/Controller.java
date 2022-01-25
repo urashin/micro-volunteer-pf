@@ -37,17 +37,6 @@ public class Controller {
     @Autowired
     private SnsIdRegisterService snsIdRegisterService;
 
-    /**
-     * @param loginRequest
-     * @return
-     */
-    @PostMapping("/user/default/login")
-    @ResponseBody
-    public LoginResponse default_login(LoginRequest loginRequest){
-        logger.info("ログインAPI");
-        String token = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
-        return LoginResponse.builder().token(token).build();
-    }
 
     @PostMapping("/user/login")
     @ResponseBody
@@ -110,19 +99,6 @@ public class Controller {
         return UserRegisterResponse.builder().result("OK").build();
     }
 
-    @PostMapping("/user/default/register/{token}")
-    @ResponseBody
-    public UserRegisterResponse default_register(@PathVariable String token, RegisterUserRequest registerUserRequest){
-        logger.info("default register API");
-        // tokenからuser_idを取得
-        String user_id = tokenService.getUserId(token);
-        userService.registerUserInfo(
-                user_id,
-                registerUserRequest.getName(),
-                registerUserRequest.getEmail(),
-                registerUserRequest.getPassword());
-        return UserRegisterResponse.builder().result("OK").build();
-    }
 
     /**
      * 障害者が適切な手助けを受けられるよう、障害情報を登録するためのAPI

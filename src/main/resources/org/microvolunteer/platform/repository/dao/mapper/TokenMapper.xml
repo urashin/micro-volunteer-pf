@@ -12,4 +12,9 @@
         from Session
         where Session.session_id = #{token}
     </select>
+    <select id="getTokenByUserId" resultType="String">
+        select session_id as token
+        from Session
+        where Session.user_id = #{user_id}
+    </select>
 </mapper>
