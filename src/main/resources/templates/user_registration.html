@@ -14,13 +14,17 @@
 <body>
 <header>
     <nav class="top-nav" style="text-align:center">
-        <h1 class="header"> login </h1>
+        <h1 class="header"> ユーザー登録 </h1>
     </nav>
 </header>
 
-<div class="reg_form">
-    <!--/*@thymesVar id="loginRequest" type="java"*/-->
-    <form th:action="@{/v1/user/default/login}" method="post" th:object="${loginRequest}" class="col s12">
+<div class="registration_form">
+    <form th:action="@{/v1/user/default/register/{token}(token=${registerUserRequest.token})}" method="post" th:object="${registerUserRequest}" class="col s12">
+        <div class="input-field col s6">
+            <i class="material-icons prefix">名前</i>
+            <input th:field="*{name}" id="name" class="validate" >
+            <label for="name">name</label>
+        </div>
         <div class="input-field col s6">
             <i class="material-icons prefix">email</i>
             <input th:field="*{email}" id="email" type="email" class="validate" >

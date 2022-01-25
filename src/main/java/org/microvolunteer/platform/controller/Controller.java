@@ -41,17 +41,17 @@ public class Controller {
      * @param loginRequest
      * @return
      */
-    @PostMapping("/user/login")
+    @PostMapping("/user/default/login")
     @ResponseBody
-    public LoginResponse login(LoginRequest loginRequest){
+    public LoginResponse default_login(LoginRequest loginRequest){
         logger.info("ログインAPI");
         String token = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
         return LoginResponse.builder().token(token).build();
     }
 
-    @PostMapping("/user/app_login")
+    @PostMapping("/user/login")
     @ResponseBody
-    public LoginResponse login_debug(@RequestBody LoginRequest loginRequest){
+    public LoginResponse app_login(@RequestBody LoginRequest loginRequest){
         logger.info("App ログインAPI");
         String token = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
         return LoginResponse.builder().token(token).build();
@@ -98,10 +98,24 @@ public class Controller {
      */
     @PostMapping("/user/register")
     @ResponseBody
-    public UserRegisterResponse register(@RequestBody RegisterUserRequest registerUserRequest){
-        logger.info("register API");
+    public UserRegisterResponse app_register(@RequestBody RegisterUserRequest registerUserRequest){
+        logger.info("app register API");
         // tokenからuser_idを取得
         String user_id = tokenService.getUserId(registerUserRequest.getToken());
+        userService.registerUserInfo(
+                user_id,
+                registerUserRequest.getName(),
+                registerUserRequest.getEmail(),
+                registerUserRequest.getPassword());
+        return UserRegisterResponse.builder().result("OK").build();
+    }
+
+    @PostMapping("/user/default/register/{token}")
+    @ResponseBody
+    public UserRegisterResponse default_register(@PathVariable String token, RegisterUserRequest registerUserRequest){
+        logger.info("default register API");
+        // tokenからuser_idを取得
+        String user_id = tokenService.getUserId(token);
         userService.registerUserInfo(
                 user_id,
                 registerUserRequest.getName(),
