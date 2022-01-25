@@ -4,8 +4,11 @@ import org.microvolunteer.platform.api.client.LineMessageRestClient;
 import org.microvolunteer.platform.domain.resource.MyActivity;
 import org.microvolunteer.platform.domain.resource.VolunteerHistory;
 import org.microvolunteer.platform.domain.resource.request.LoginRequest;
+import org.microvolunteer.platform.domain.resource.request.RegisterUserRequest;
+import org.microvolunteer.platform.domain.resource.response.SnsRegisterResponse;
 import org.microvolunteer.platform.repository.dao.mapper.SnsRegisterMapper;
 import org.microvolunteer.platform.service.MatchingService;
+import org.microvolunteer.platform.service.SnsIdRegisterService;
 import org.microvolunteer.platform.service.TokenService;
 import org.microvolunteer.platform.service.UserService;
 import org.slf4j.Logger;
@@ -40,6 +43,29 @@ public class UIController {
 
     @Autowired
     private LineMessageRestClient lineMessageRestClient;
+
+    @Autowired
+    private SnsIdRegisterService snsIdRegisterService;
+
+    @GetMapping("/user/register/{sns_id}")
+    public String register(@PathVariable String sns_id, Model model) {
+        logger.info("sns register API");
+        RegisterUserRequest registerUserRequest = new RegisterUserRequest();
+        // 1) user_id を新規発行（個々の情報はパスワード設定など、個別に設定）
+        String user_id = userService.createUser();
+
+        // 2) session 管理のトークンを発行
+        String token = tokenService.createToken(user_id);
+        registerUserRequest.setToken(token);
+
+        // 3) SnsId tableにuser_id&sns_idのペアで登録し、紐付け完了
+        snsIdRegisterService.registerSnsId(sns_id,user_id, 1);
+
+        // 4) modelに変数を設定
+        model.addAttribute(registerUserRequest);
+        //model.addAttribute("retister_user",registerUserRequest.createHashMap());
+        return "user_registration";
+    }
 
     @GetMapping("/user/login")
     public String login(Model model) {
