@@ -5,7 +5,9 @@ import org.microvolunteer.platform.domain.resource.MyActivity;
 import org.microvolunteer.platform.domain.resource.VolunteerHistory;
 import org.microvolunteer.platform.domain.resource.request.LoginRequest;
 import org.microvolunteer.platform.domain.resource.request.RegisterUserRequest;
+import org.microvolunteer.platform.domain.resource.response.LoginResponse;
 import org.microvolunteer.platform.domain.resource.response.SnsRegisterResponse;
+import org.microvolunteer.platform.domain.resource.response.UserRegisterResponse;
 import org.microvolunteer.platform.repository.dao.mapper.SnsRegisterMapper;
 import org.microvolunteer.platform.service.MatchingService;
 import org.microvolunteer.platform.service.SnsIdRegisterService;
@@ -16,11 +18,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 
 @CrossOrigin
@@ -63,7 +63,6 @@ public class UIController {
 
         // 4) modelに変数を設定
         model.addAttribute(registerUserRequest);
-        //model.addAttribute("retister_user",registerUserRequest.createHashMap());
         return "user_registration";
     }
 
@@ -73,6 +72,37 @@ public class UIController {
         model.addAttribute(new LoginRequest());
         return "login_form";
     }
+
+    /**
+     * @param loginRequest
+     * @return
+     */
+    @PostMapping("/user/default/login")
+    public String default_login(LoginRequest loginRequest, Model model){
+        logger.info("ログインAPI");
+        String user_id = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
+        String token = tokenService.getTokenByUserId(user_id);
+
+        HashMap<String,String> map = new HashMap<>();
+        map.put("token",token);
+        model.addAttribute("login",map);
+        return "menu";
+    }
+
+    @PostMapping("/user/default/register/{token}")
+    public String default_register(@PathVariable String token, RegisterUserRequest registerUserRequest,Model model){
+        logger.info("default register API");
+        // tokenからuser_idを取得
+        String user_id = tokenService.getUserId(token);
+        userService.registerUserInfo(
+                user_id,
+                registerUserRequest.getName(),
+                registerUserRequest.getEmail(),
+                registerUserRequest.getPassword());
+        model.addAttribute("loginRequest", new LoginRequest());
+        return "login_form";
+    }
+
 
     @GetMapping("/line_accept/{sns_id}/{help_id}")
     public String accept(@PathVariable String sns_id, @PathVariable Integer help_id) {
@@ -90,10 +120,11 @@ public class UIController {
         return "Accepted";
     }
 
-    @GetMapping("/history/{sns_id}")
-    public String volunteer_history(@PathVariable String sns_id, Model model) {
-        logger.info("line_thanks");
-        String volunteer_id = tokenService.getUserIdBySnsId(sns_id);
+    @GetMapping("/history/{token}")
+    public String volunteer_history(@PathVariable String token, Model model) {
+        logger.info("history");
+        // tokenからuser_idを取得
+        String volunteer_id = tokenService.getUserId(token);
         List<MyActivity> history = userService.getMyActivities(volunteer_id, 10);
         model.addAttribute("history", history);
         return "my_history";
