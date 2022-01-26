@@ -1,8 +1,7 @@
 package org.microvolunteer.platform.controller;
 
 import org.microvolunteer.platform.api.client.LineMessageRestClient;
-import org.microvolunteer.platform.domain.resource.MyActivity;
-import org.microvolunteer.platform.domain.resource.VolunteerHistory;
+import org.microvolunteer.platform.domain.resource.*;
 import org.microvolunteer.platform.domain.resource.request.LoginRequest;
 import org.microvolunteer.platform.domain.resource.request.RegisterUserRequest;
 import org.microvolunteer.platform.domain.resource.response.LoginResponse;
@@ -20,6 +19,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -83,9 +83,27 @@ public class UIController {
         String user_id = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
         String token = tokenService.getTokenByUserId(user_id);
 
-        HashMap<String,String> map = new HashMap<>();
-        map.put("token",token);
-        model.addAttribute("login",map);
+        //HashMap<String,String> map = new HashMap<>();
+        //map.put("token",token);
+        List<MyHandicap> handicap_list = new ArrayList<>();
+        handicap_list.add(MyHandicap.builder()
+                .comment("陳列棚の高いところに手がとどきません。近くの方、とっていただけませんか？")
+                .handicap_level(3)
+                .handicap_type("1")
+                .handicap_name("車椅子")
+                .reliability_th(3)
+                .severity(2)
+                .build());
+        MyProfile myProfile = MyProfile.builder()
+                .token(token)
+                .volunteer_summary(MyVolunteerSummary.builder()
+                        .average_satisfaction("5")
+                        .my_name("浦川")
+                        .support_count("2")
+                        .build())
+                .handicap_list(handicap_list)
+                .build();
+        model.addAttribute(myProfile);
         return "menu";
     }
 
