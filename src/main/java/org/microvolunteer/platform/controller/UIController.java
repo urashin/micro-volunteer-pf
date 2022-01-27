@@ -88,7 +88,7 @@ public class UIController {
         handicap_list.add(MyHandicap.builder()
                 .comment("陳列棚の高いところに手がとどきません。近くの方、とっていただけませんか？")
                 .handicap_level(3)
-                .handicap_type("1")
+                .handicap_type("2")
                 .handicap_name("車椅子")
                 .reliability_th(3)
                 .severity(2)
