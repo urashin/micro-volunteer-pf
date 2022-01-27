@@ -1,10 +1,10 @@
 line-message:
-  api_uri: (LINE通知API)
-  accept_button_uri: (Acceptボタンが押された場合の遷移先ベースURL）
-  ignore_button_uri: (Ignoreボタンが押された場合の遷移先ベースURL）
+  api_uri: "http://micro-volunteer-supporter.com:8000/v1/sns/send-request-volunteer"
+  accept_button_uri: "http://micro-volunteer-supporter.com"
+  ignore_button_uri: "http://micro-volunteer-supporter.com"
   accept_button_label: "いま行きます！"
   ignore_button_label: "今は無理"
 
 encrypt:
   volunteerdb:
-    key: '任意の暗号化キーに置き換えてください'
+    key: 'MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAPfawZ1qJkJP2j+17nI38xgH9KQPFD1GnMfraazWsbTqlIgHCxcRezJX7G5sJfasitrwkbLv29BB4kvwN+vMro0CAwEAAQ=='
