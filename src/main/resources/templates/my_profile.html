@@ -12,7 +12,25 @@
     <title>micro-volunteer</title>
 </head>
 <body>
-<nav>
+<header>
+    <nav>
+        <div class="nav-wrapper">
+            <a href="#" class="brand-logo">micro volunteer</a>
+            <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+            <ul class="right hide-on-med-and-down">
+                <li><a href="#">checkin!</a></li>
+                <li><a href="#">Help!</a></li>
+                <li><a th:href="@{/v1/history/{token}(token=${myProfile.token})}" method="post">history</a></li>
+            </ul>
+        </div>
+    </nav>
+    <ul class="sidenav" id="mobile-demo">
+        <li><a href="#">checkin!</a></li>
+        <li><a href="#">Help!</a></li>
+        <li><a th:href="@{/v1/history/{token}(token=${myProfile.token})}" method="post">history</a></li>
+    </ul>
+</header>
+<!--nav>
     <div class="nav-wrapper">
         <a href="#" class="brand-logo center">micro-volunteer</a>
         <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
@@ -28,7 +46,7 @@
     <li><a href="badges.html">Components</a></li>
     <li><a href="collapsible.html">Javascript</a></li>
     <li><a href="mobile.html">Mobile</a></li>
-</ul>
+</ul-->
 
 <div class="row">
     <div class="col s12 m6">
@@ -45,22 +63,33 @@
     <ul class="collection">
         <li class="collection-item avatar" th:each="myHandicap: ${myProfile.handicap_list}">
             <!-- card -->
-            <img th:src="@{/img/{handicap_type}.png(handicap_type=${myHandicap.handicap_type})}" alt="" class="circle">
-            <!--img src="images/yuna.jpg" alt="" class="circle"-->
             <div class="row">
                 <div class="col s12 m6">
+                    <img th:src="@{/img/{handicap_type}.png(handicap_type=${myHandicap.handicap_type})}" alt="" class="circle">
+                    <!--img src="images/yuna.jpg" alt="" class="circle"-->
                     <div class="card blue-grey darken-1">
                         <div class="card-content white-text">
                             <span class="card-title">[[${myHandicap.handicap_name}]]</span>
                             <p>障がいの程度： [[${myHandicap.handicap_level}]] </p>
                             <p>コメント： [[${myHandicap.comment}]] </p>
+                            <a href="#" class="secondary-content"><i class="material-icons">delete</i></a>
                         </div>
                     </div>
                 </div>
             </div>
         </li>
     </ul>
+    <div class="card-action">
+        <a th:href="@{/v1/user/add_handicap/{token}(token=${myProfile.token})}" method="get">追加</a>
+    </div>
 </div>
-
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        <!--var elems = document.querySelectorAll('.collapsible');
+        var instances = M.Collapsible.init(elems);-->
+        var elems = document.querySelectorAll('.sidenav');
+        var instances = M.Sidenav.init(elems);
+    });
+</script>
 </body>
 </html>
