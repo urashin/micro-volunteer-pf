@@ -2,6 +2,7 @@ package org.microvolunteer.platform.controller;
 
 import org.microvolunteer.platform.api.client.LineMessageRestClient;
 import org.microvolunteer.platform.domain.resource.*;
+import org.microvolunteer.platform.domain.resource.request.HandicapRegisterRequest;
 import org.microvolunteer.platform.domain.resource.request.LoginRequest;
 import org.microvolunteer.platform.domain.resource.request.RegisterUserRequest;
 import org.microvolunteer.platform.domain.resource.response.LoginResponse;
@@ -83,13 +84,11 @@ public class UIController {
         String user_id = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
         String token = tokenService.getTokenByUserId(user_id);
 
-        //HashMap<String,String> map = new HashMap<>();
-        //map.put("token",token);
         List<MyHandicap> handicap_list = new ArrayList<>();
         handicap_list.add(MyHandicap.builder()
                 .comment("陳列棚の高いところに手がとどきません。近くの方、とっていただけませんか？")
                 .handicap_level(3)
-                .handicap_type("1")
+                .handicap_type("2")
                 .handicap_name("車椅子")
                 .reliability_th(3)
                 .severity(2)
@@ -104,7 +103,24 @@ public class UIController {
                 .handicap_list(handicap_list)
                 .build();
         model.addAttribute(myProfile);
-        return "menu";
+        return "my_profile";
+    }
+
+    @GetMapping("/user/add_handicap/{token}")
+    public String add_handicap(@PathVariable String token, Model model){
+        logger.info("add handicap API");
+        try {
+            // tokenからuser_idを取得
+            tokenService.getUserId(token);
+        } catch (Exception e) {
+            return "abuser";
+        }
+
+        HandicapRegisterRequest handicapRegisterRequest = HandicapRegisterRequest.builder()
+                .token(token)
+                .build();
+        model.addAttribute(handicapRegisterRequest);
+        return "handicap_form";
     }
 
     @PostMapping("/user/default/register/{token}")
