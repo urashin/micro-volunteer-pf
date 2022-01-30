@@ -5,9 +5,6 @@ import org.microvolunteer.platform.domain.resource.*;
 import org.microvolunteer.platform.domain.resource.request.HandicapRegisterRequest;
 import org.microvolunteer.platform.domain.resource.request.LoginRequest;
 import org.microvolunteer.platform.domain.resource.request.RegisterUserRequest;
-import org.microvolunteer.platform.domain.resource.response.LoginResponse;
-import org.microvolunteer.platform.domain.resource.response.SnsRegisterResponse;
-import org.microvolunteer.platform.domain.resource.response.UserRegisterResponse;
 import org.microvolunteer.platform.repository.dao.mapper.SnsRegisterMapper;
 import org.microvolunteer.platform.service.MatchingService;
 import org.microvolunteer.platform.service.SnsIdRegisterService;
@@ -21,7 +18,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 @CrossOrigin
@@ -67,7 +63,7 @@ public class UIController {
         return "user_registration";
     }
 
-    @GetMapping("/user/login")
+    @GetMapping("/default/user/login")
     public String login(Model model) {
         logger.info("login");
         model.addAttribute(new LoginRequest());
@@ -78,12 +74,14 @@ public class UIController {
      * @param loginRequest
      * @return
      */
-    @PostMapping("/user/default/login")
+    @PostMapping("/default/user/login")
     public String default_login(LoginRequest loginRequest, Model model){
         logger.info("ログインAPI");
         String user_id = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
         String token = tokenService.getTokenByUserId(user_id);
 
+        MyProfile myProfile = userService.getMyProfile(user_id, token);
+        /*
         List<MyHandicap> handicap_list = new ArrayList<>();
         handicap_list.add(MyHandicap.builder()
                 .comment("陳列棚の高いところに手がとどきません。近くの方、とっていただけませんか？")
@@ -102,11 +100,12 @@ public class UIController {
                         .build())
                 .handicap_list(handicap_list)
                 .build();
+         */
         model.addAttribute(myProfile);
         return "my_profile";
     }
 
-    @GetMapping("/user/add_handicap/{token}")
+    @GetMapping("/default/user/handicap/register/{token}")
     public String add_handicap(@PathVariable String token, Model model){
         logger.info("add handicap API");
         try {
@@ -123,7 +122,17 @@ public class UIController {
         return "handicap_form";
     }
 
-    @PostMapping("/user/default/register/{token}")
+    @PostMapping("/default/user/handicap/register/{token}")
+    public String default_handicap_register(@PathVariable String token, HandicapRegisterRequest registerRequest, Model model){
+        logger.info("handicap register API");
+        String user_id = tokenService.getUserId(registerRequest.getToken());
+        MyProfile myProfile = userService.getMyProfile(user_id, registerRequest.getToken());
+        userService.registerHandicappedInfo(user_id,registerRequest);
+        model.addAttribute(myProfile);
+        return "my_profile";
+    }
+
+    @PostMapping("/default/user/register/{token}")
     public String default_register(@PathVariable String token, RegisterUserRequest registerUserRequest,Model model){
         logger.info("default register API");
         // tokenからuser_idを取得
