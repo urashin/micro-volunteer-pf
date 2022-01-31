@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.microvolunteer.platform.repository.dao.mapper.HandicapMasterMapper">
+    <insert id="addHandicapType">
+        insert into HandicapMaster(handicap_type,handicap_name,icon_path,comment)
+        values(#{handicap_type},#{handicap_name},#{icon_path},#{comment})
+    </insert>
+    <select id="getHandicapMasterList" resultType="org.microvolunteer.platform.domain.resource.HandicapMaster">
+        select
+               handicap_type,
+               handicap_name,
+               icon_path,
+               comment
+        from HandicapMaster
+    </select>
+</mapper>
