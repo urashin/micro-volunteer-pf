@@ -25,12 +25,12 @@
         <li class="collection-item avatar" th:each="myactivity : ${history}">
             <span class="badge" th:text="${myactivity.satisfaction}">
             </span>
-            <img src="/img/1.png" alt="" class="circle">
-            <!--img th:src="/img/${myactivity.icon_path}.png" alt="" class="circle"-->
+            <img th:src="@{/img/{handicap_type}.png(handicap_type=${myactivity.icon_path})}" class="circle">
             <span class="title" th:text="${myactivity.datetime}"></span>
             <p th:text="${myactivity.area_name}"></p>
         </li>
     </ul>
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 </body>
 </html>

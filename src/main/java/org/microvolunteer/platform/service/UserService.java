@@ -134,8 +134,9 @@ public class UserService {
      * 障害者の障害情報を取得
      * @param handicapped_id
      */
-    public List<HandicapInfo> getMyHandicapList(String handicapped_id) {
-        List<HandicapInfo> handicaplist = handicapInfoRegisterMapper.getHandicapList(handicapped_id);
+    public List<MyHandicap> getMyHandicapList(String handicapped_id) {
+        //List<HandicapInfo> handicaplist = handicapInfoRegisterMapper.getHandicapList(handicapped_id);
+        List<MyHandicap> handicaplist = handicapInfoRegisterMapper.getHandicapList(handicapped_id);
         return handicaplist;
     }
 
@@ -164,5 +165,30 @@ public class UserService {
     public List<VolunteerHistory> getMyVolunteerHistory(String volunteer_id, Integer get_limit) {
         List<VolunteerHistory> historyList = thanksMapper.getMyVolunteerHistory(volunteer_id,get_limit);
         return historyList;
+    }
+
+    public MyProfile getMyProfile(String user_id, String token) {
+        /*
+        List<MyHandicap> handicap_list = new ArrayList<>();
+        handicap_list.add(MyHandicap.builder()
+                .comment("陳列棚の高いところに手がとどきません。近くの方、とっていただけませんか？")
+                .handicap_level(3)
+                .handicap_type("2")
+                .handicap_name("車椅子")
+                .reliability_th(3)
+                .severity(2)
+                .build());
+         */
+        List<MyHandicap> handicap_list = getMyHandicapList(user_id);
+        MyProfile myProfile = MyProfile.builder()
+                .token(token)
+                .volunteer_summary(MyVolunteerSummary.builder()
+                        .average_satisfaction("5")
+                        .my_name("浦川")
+                        .support_count("2")
+                        .build())
+                .handicap_list(handicap_list)
+                .build();
+        return myProfile;
     }
 }

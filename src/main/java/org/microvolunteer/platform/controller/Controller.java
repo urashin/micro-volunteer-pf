@@ -1,15 +1,10 @@
 package org.microvolunteer.platform.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.microvolunteer.platform.domain.resource.*;
 import org.microvolunteer.platform.domain.resource.request.*;
 import org.microvolunteer.platform.domain.resource.response.*;
-import org.microvolunteer.platform.domain.resource.HandicapInfo;
-import org.microvolunteer.platform.domain.resource.Location;
-import org.microvolunteer.platform.domain.resource.VolunteerHistory;
-import org.microvolunteer.platform.service.MatchingService;
-import org.microvolunteer.platform.service.SnsIdRegisterService;
-import org.microvolunteer.platform.service.TokenService;
-import org.microvolunteer.platform.service.UserService;
+import org.microvolunteer.platform.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +32,8 @@ public class Controller {
     @Autowired
     private SnsIdRegisterService snsIdRegisterService;
 
+    @Autowired
+    private AdminService adminService;
 
     @PostMapping("/user/login")
     @ResponseBody
@@ -158,7 +155,7 @@ public class Controller {
         // 障害者の位置情報を更新
         String user_id = tokenService.getUserId(request.getToken());
         // 障害者の障害情報リストを取得
-        List<HandicapInfo> handicapInfoList = userService.getMyHandicapList(user_id);
+        List<MyHandicap> handicapInfoList = userService.getMyHandicapList(user_id);
         return MyHandicapInfoResponse.builder().handicapInfoList(handicapInfoList).build();
     }
 
@@ -264,7 +261,22 @@ public class Controller {
         return "OK";
     }
 
-    @GetMapping("/kakunin")
+    @PostMapping("/admin/add_handicap_type")
+    @ResponseBody
+    public String add_handicap_type(@RequestBody AddHandicapTypeRequest request){
+        logger.info("add handicap type API");
+        String auth_code = request.getAuth_code();
+        HandicapMaster master = HandicapMaster.builder()
+                .handicap_name(request.getHandicap_name())
+                .comment(request.getComment())
+                .icon_path(request.getIcon_path())
+                .build();
+
+        adminService.addHandicapMaster(master,auth_code);
+        return "OK";
+    }
+
+    @GetMapping("/hello")
     @ResponseBody
     public CheckInResponse checkin(){
         logger.info("疎通確認 URL");

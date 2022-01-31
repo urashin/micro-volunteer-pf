@@ -19,7 +19,7 @@
 </header>
 
 <div class="registration_form">
-    <form th:action="@{/v1/user/default/register/{token}(token=${registerUserRequest.token})}" method="post" th:object="${registerUserRequest}" class="col s12">
+    <form th:action="@{/v1/default/user/register/{token}(token=${registerUserRequest.token})}" method="post" th:object="${registerUserRequest}" class="col s12">
         <div class="input-field col s6">
             <i class="material-icons prefix">名前</i>
             <input th:field="*{name}" id="name" class="validate" >
@@ -39,5 +39,6 @@
         </button>
     </form>
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 </body>
 </html>
