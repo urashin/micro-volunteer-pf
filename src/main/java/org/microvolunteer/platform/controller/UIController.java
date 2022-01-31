@@ -81,26 +81,6 @@ public class UIController {
         String token = tokenService.getTokenByUserId(user_id);
 
         MyProfile myProfile = userService.getMyProfile(user_id, token);
-        /*
-        List<MyHandicap> handicap_list = new ArrayList<>();
-        handicap_list.add(MyHandicap.builder()
-                .comment("陳列棚の高いところに手がとどきません。近くの方、とっていただけませんか？")
-                .handicap_level(3)
-                .handicap_type("2")
-                .handicap_name("車椅子")
-                .reliability_th(3)
-                .severity(2)
-                .build());
-        MyProfile myProfile = MyProfile.builder()
-                .token(token)
-                .volunteer_summary(MyVolunteerSummary.builder()
-                        .average_satisfaction("5")
-                        .my_name("浦川")
-                        .support_count("2")
-                        .build())
-                .handicap_list(handicap_list)
-                .build();
-         */
         model.addAttribute(myProfile);
         return "my_profile";
     }
@@ -126,8 +106,8 @@ public class UIController {
     public String default_handicap_register(@PathVariable String token, HandicapRegisterRequest registerRequest, Model model){
         logger.info("handicap register API");
         String user_id = tokenService.getUserId(registerRequest.getToken());
-        MyProfile myProfile = userService.getMyProfile(user_id, registerRequest.getToken());
         userService.registerHandicappedInfo(user_id,registerRequest);
+        MyProfile myProfile = userService.getMyProfile(user_id, registerRequest.getToken());
         model.addAttribute(myProfile);
         return "my_profile";
     }

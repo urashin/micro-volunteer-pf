@@ -44,6 +44,17 @@
             <label>障がいの程度</label>
         </div>
         <br>
+        <div class="input-field col s12">
+            <i>問題の深刻度合い</i>
+            <select th:field="*{severity}" id="severity">
+                <option value="" disabled selected>Choose your handicap level</option>
+                <option value="1">助けてもらえると嬉しい[小]</option>
+                <option value="2">助けが欲しい[中]</option>
+                <option value="3">助けが欲しい[大]</option>
+            </select>
+            <label>障がいの程度</label>
+        </div>
+        <br>
         <div class="input-field col s6">
             <i>コメント</i>
             <input th:field="*{comment}" id="comment">
