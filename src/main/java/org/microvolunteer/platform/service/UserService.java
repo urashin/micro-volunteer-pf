@@ -3,8 +3,7 @@ package org.microvolunteer.platform.service;
 import org.microvolunteer.platform.domain.dto.ActivityDto;
 import org.microvolunteer.platform.domain.resource.request.HandicapRegisterRequest;
 import org.microvolunteer.platform.domain.resource.*;
-import org.microvolunteer.platform.domain.resource.request.RegisterUserRequest;
-import org.microvolunteer.platform.repository.dao.mapper.HandicapInfoRegisterMapper;
+import org.microvolunteer.platform.repository.dao.mapper.HandicapInfoMapper;
 import org.microvolunteer.platform.repository.dao.mapper.ThanksMapper;
 import org.microvolunteer.platform.repository.dao.mapper.UserMapper;
 import org.microvolunteer.platform.domain.dto.GeometryDto;
@@ -26,7 +25,7 @@ public class UserService {
     private ThanksMapper thanksMapper;
 
     @Autowired
-    private HandicapInfoRegisterMapper handicapInfoRegisterMapper;
+    private HandicapInfoMapper handicapInfoMapper;
 
     @Autowired
     private MatchingService matchingService;
@@ -112,13 +111,13 @@ public class UserService {
     public void registerHandicappedInfo(String user_id, HandicapRegisterRequest registerRequest) {
         RegisterHandicapInfo registerHandicapInfo = RegisterHandicapInfo.builder()
                 .handicapped_id(user_id)
-                .reliability_th(registerRequest.getReliability_th())
+                .reliability_th(0)
                 .severity(registerRequest.getSeverity())
                 .handicap_type(registerRequest.getHandicap_type())
                 .handicap_level(registerRequest.getHandicap_level())
                 .comment(registerRequest.getComment())
                 .build();
-        handicapInfoRegisterMapper.registerHandicapInfo(registerHandicapInfo);
+        handicapInfoMapper.registerHandicapInfo(registerHandicapInfo);
     }
 
     /**
@@ -126,7 +125,7 @@ public class UserService {
      * @param handicapinfo_id
      */
     public HandicapInfo getHandicappedInfo(Integer handicapinfo_id) {
-        HandicapInfo handicapInfo = handicapInfoRegisterMapper.getHandicapInfo(handicapinfo_id);
+        HandicapInfo handicapInfo = handicapInfoMapper.getHandicapInfo(handicapinfo_id);
         return handicapInfo;
     }
 
@@ -135,8 +134,7 @@ public class UserService {
      * @param handicapped_id
      */
     public List<MyHandicap> getMyHandicapList(String handicapped_id) {
-        //List<HandicapInfo> handicaplist = handicapInfoRegisterMapper.getHandicapList(handicapped_id);
-        List<MyHandicap> handicaplist = handicapInfoRegisterMapper.getHandicapList(handicapped_id);
+        List<MyHandicap> handicaplist = handicapInfoMapper.getHandicapList(handicapped_id);
         return handicaplist;
     }
 
@@ -168,25 +166,12 @@ public class UserService {
     }
 
     public MyProfile getMyProfile(String user_id, String token) {
-        /*
-        List<MyHandicap> handicap_list = new ArrayList<>();
-        handicap_list.add(MyHandicap.builder()
-                .comment("陳列棚の高いところに手がとどきません。近くの方、とっていただけませんか？")
-                .handicap_level(3)
-                .handicap_type("2")
-                .handicap_name("車椅子")
-                .reliability_th(3)
-                .severity(2)
-                .build());
-         */
         List<MyHandicap> handicap_list = getMyHandicapList(user_id);
+        MyVolunteerSummary mySummary = userMapper.getMyVolunteerSummary(user_id);
+
         MyProfile myProfile = MyProfile.builder()
                 .token(token)
-                .volunteer_summary(MyVolunteerSummary.builder()
-                        .average_satisfaction("5")
-                        .my_name("浦川")
-                        .support_count("2")
-                        .build())
+                .volunteer_summary(mySummary)
                 .handicap_list(handicap_list)
                 .build();
         return myProfile;

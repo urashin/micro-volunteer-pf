@@ -43,4 +43,15 @@
           and
               SHA2(#{password}, 512) = convert(aes_decrypt(unhex(password),#{encrypt_key}) using utf8);
     </select>
+    <select id="getMyVolunteerSummary" resultType="org.microvolunteer.platform.domain.resource.MyVolunteerSummary">
+        select
+               Users.name as my_name,
+               count(VolunteerHistory.satisfaction) as support_count,
+               avg(VolunteerHistory.satisfaction) as average_satisfaction
+        from
+            Users
+        left join VolunteerHistory on Users.user_id = VolunteerHistory.volunteer_id
+        where
+            Users.user_id = #{user_id}
+    </select>
 </mapper>

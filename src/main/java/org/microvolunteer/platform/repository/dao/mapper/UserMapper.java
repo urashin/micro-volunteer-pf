@@ -2,6 +2,7 @@ package org.microvolunteer.platform.repository.dao.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.microvolunteer.platform.domain.resource.Login;
+import org.microvolunteer.platform.domain.resource.MyVolunteerSummary;
 import org.microvolunteer.platform.domain.resource.RegisterUserProperty;
 import org.microvolunteer.platform.domain.resource.UserProperty;
 
@@ -11,4 +12,5 @@ public interface UserMapper {
     void registerUserProperty(RegisterUserProperty userProperty);
     void updateUserProperty(RegisterUserProperty userProperty);
     String login(Login login);
+    MyVolunteerSummary getMyVolunteerSummary(String volunteer_id);
 }

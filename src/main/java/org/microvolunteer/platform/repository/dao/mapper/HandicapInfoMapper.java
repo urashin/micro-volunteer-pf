@@ -8,7 +8,7 @@ import org.microvolunteer.platform.domain.resource.RegisterHandicapInfo;
 import java.util.List;
 
 @Mapper
-public interface HandicapInfoRegisterMapper {
+public interface HandicapInfoMapper {
     void registerHandicapInfo(RegisterHandicapInfo handicapInfo);
     HandicapInfo getHandicapInfo(Integer handicapinfo_id);
     List<MyHandicap> getHandicapList(String handicapped_id);

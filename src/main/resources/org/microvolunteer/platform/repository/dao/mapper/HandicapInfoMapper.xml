@@ -2,7 +2,7 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="org.microvolunteer.platform.repository.dao.mapper.HandicapInfoRegisterMapper">
+<mapper namespace="org.microvolunteer.platform.repository.dao.mapper.HandicapInfoMapper">
     <select id="getHandicapInfo" resultType="org.microvolunteer.platform.domain.resource.HandicapInfo">
         select
             HandicapInfo.handicapinfo_id,
@@ -31,20 +31,6 @@
             HandicapMaster.handicap_type = HandicapInfo.handicap_type
         where
             HandicapInfo.handicapped_id = #{handicapped_id}
-    </select>
-    <select id="getHandicapList_old" resultType="org.microvolunteer.platform.domain.resource.MyHandicap">
-        select
-            HandicapInfo.handicapinfo_id,
-            HandicapInfo.handicapped_id,
-            HandicapInfo.handicap_type,
-            HandicapInfo.handicap_level,
-            HandicapInfo.reliability_th,
-            HandicapInfo.severity,
-            HandicapInfo.comment
-        from
-            HandicapInfo
-        where
-            handicapped_id = #{handicapped_id}
     </select>
     <insert id="registerHandicapInfo">
         insert into HandicapInfo(
