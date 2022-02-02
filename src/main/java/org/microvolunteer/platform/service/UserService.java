@@ -176,4 +176,14 @@ public class UserService {
                 .build();
         return myProfile;
     }
+
+    public ThanksList getMyThanksList(String handicapped_id, Integer th) {
+        List<SendThanks> send_list = thanksMapper.getSendList(handicapped_id,th);
+        List<DoneThanks> done_list = thanksMapper.getDoneList(handicapped_id,th);
+        ThanksList thanksList = ThanksList.builder()
+                .send_list(send_list)
+                .done_list(done_list)
+                .build();
+        return thanksList;
+    }
 }

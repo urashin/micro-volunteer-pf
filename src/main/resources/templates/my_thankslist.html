@@ -20,27 +20,35 @@
             <ul class="right hide-on-med-and-down">
                 <li><a href="#">checkin!</a></li>
                 <li><a href="#">Help!</a></li>
-                <li><a th:href="@{/v1/default/user/thanks_list/{token}(token=${token})}" method="post">Thanks</a></li>
-                <li><a href="#">history</a></li>
+                <li><a href="#">Thanks</a></li>
+                <li><a th:href="@{/v1/default/user/history/{token}(token=${token})}" method="post">history</a></li>
             </ul>
         </div>
     </nav>
     <ul class="sidenav" id="mobile-demo">
         <li><a href="#">checkin!</a></li>
         <li><a href="#">Help!</a></li>
-        <li><a th:href="@{/v1/default/user/thanks_list/{token}(token=${token})}" method="post">Thanks</a></li>
-        <li><a href="#">history</a></li>
+        <li><a href="#">Thanks</a></li>
+        <li><a th:href="@{/v1/default/user/history/{token}(token=${token})}" method="post">history</a></li>
     </ul>
 </header>
 
 <div class="registration_form">
     <ul class="collection">
-        <li class="collection-item avatar" th:each="myactivity : ${history}">
-            <span class="badge" th:text="${myactivity.satisfaction}">
-            </span>
-            <img th:src="@{/img/{handicap_type}.png(handicap_type=${myactivity.icon_path})}" class="circle">
-            <span class="title" th:text="${myactivity.datetime}"></span>
-            <p th:text="${myactivity.area_name}"></p>
+        <li class="collection-item avatar" th:each="thanks : ${thanksList.send_list}">
+            <img th:src="@{/img/{handicap_type}.png(handicap_type=${thanks.handicap_type})}" class="circle">
+            <span class="title" th:text="${thanks.handicap_name}"></span>
+            <p th:text="${thanks.area_name}"></p>
+        </li>
+    </ul>
+</div>
+<div class="registration_form">
+    <ul class="collection">
+        <li class="collection-item avatar" th:each="thanks : ${thanksList.done_list}">
+            <!--span class="badge" th:text="${myactivity.satisfaction}"> </span-->
+            <img th:src="@{/img/{handicap_type}.png(handicap_type=${thanks.handicap_type})}" class="circle">
+            <span class="title" th:text="${thanks.handicap_name}"></span>
+            <p th:text="${thanks.area_name}"></p>
         </li>
     </ul>
 </div>
