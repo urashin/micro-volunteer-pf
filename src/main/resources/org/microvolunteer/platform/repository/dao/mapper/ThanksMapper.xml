@@ -28,4 +28,31 @@
         from VolunteerHistory vh left join CheckinArea ca on vh.area_id = ca.area_id
         where vh.volunteer_id = #{volunteer_id} ORDER BY vh.created_at LIMIT ${get_limit}
     </select>
+
+    <select id="getDoneList"  resultType="org.microvolunteer.platform.domain.resource.DoneThanks">
+        select
+             hm.handicap_name
+             ,vh.handicap_type
+             ,DATE_FORMAT(vh.created_at, '%Y/%m/%d %H:%i') datetime
+             ,ca.area_name
+             ,vh.satisfaction
+        from VolunteerHistory vh
+            left join CheckinArea ca on vh.area_id = ca.area_id
+            left join HandicapMaster hm on vh.handicap_type = hm.handicap_type
+        where vh.handicapped_id = #{handicapped_id} ORDER BY vh.created_at LIMIT ${get_limit}
+    </select>
+
+    <select id="getSendList"  resultType="org.microvolunteer.platform.domain.resource.SendThanks">
+        select
+             help_id
+             ,hm.handicap_name
+             ,h.handicap_type
+             ,DATE_FORMAT(h.created_at, '%Y/%m/%d %H:%i') datetime
+             ,ca.area_name
+             ,0 as satisfaction
+        from Help h
+                 left join CheckinArea ca on h.area_id = ca.area_id
+                 left join HandicapMaster hm on h.handicap_type = hm.handicap_type
+        where h.handicapped_id = #{handicapped_id} ORDER BY h.created_at LIMIT ${get_limit}
+    </select>
 </mapper>

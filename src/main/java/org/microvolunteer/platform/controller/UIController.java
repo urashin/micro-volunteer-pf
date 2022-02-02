@@ -74,7 +74,7 @@ public class UIController {
      * @param loginRequest
      * @return
      */
-    @PostMapping("/default/user/login")
+    @PostMapping("/default/user/mypage")
     public String default_login(LoginRequest loginRequest, Model model){
         logger.info("ログインAPI");
         String user_id = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
@@ -82,6 +82,28 @@ public class UIController {
 
         MyProfile myProfile = userService.getMyProfile(user_id, token);
         model.addAttribute(myProfile);
+        model.addAttribute("token", token);
+        return "my_profile";
+    }
+
+    /**
+     * @param token
+     * @return
+     */
+    @GetMapping("/user/mypage/{token}")
+    public String mypage(@PathVariable String token, Model model){
+        logger.info("mypage API");
+        String user_id = "";
+        try {
+            // tokenからuser_idを取得
+            user_id = tokenService.getUserId(token);
+        } catch (Exception e) {
+            return "abuser";
+        }
+
+        MyProfile myProfile = userService.getMyProfile(user_id, token);
+        model.addAttribute(myProfile);
+        model.addAttribute("token", token);
         return "my_profile";
     }
 
@@ -99,6 +121,7 @@ public class UIController {
                 .token(token)
                 .build();
         model.addAttribute(handicapRegisterRequest);
+        model.addAttribute("token", token);
         return "handicap_form";
     }
 
@@ -109,6 +132,7 @@ public class UIController {
         userService.registerHandicappedInfo(user_id,registerRequest);
         MyProfile myProfile = userService.getMyProfile(user_id, registerRequest.getToken());
         model.addAttribute(myProfile);
+        model.addAttribute("token", token);
         return "my_profile";
     }
 
@@ -143,14 +167,25 @@ public class UIController {
         return "Accepted";
     }
 
-    @GetMapping("/history/{token}")
+    @GetMapping("/default/user/history/{token}")
     public String volunteer_history(@PathVariable String token, Model model) {
         logger.info("history");
         // tokenからuser_idを取得
         String volunteer_id = tokenService.getUserId(token);
         List<MyActivity> history = userService.getMyActivities(volunteer_id, 10);
         model.addAttribute("history", history);
+        model.addAttribute("token", token);
         return "my_history";
     }
 
+    @GetMapping("/default/user/thanks_list/{token}")
+    public String default_thanks_list(@PathVariable String token, Model model) {
+        logger.info("thanks list");
+        // tokenからuser_idを取得
+        String handicapped_id = tokenService.getUserId(token);
+        ThanksList thanksList = userService.getMyThanksList(handicapped_id, 10);
+        model.addAttribute(thanksList);
+        model.addAttribute("token", token);
+        return "my_thankslist";
+    }
 }

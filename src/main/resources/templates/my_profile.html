@@ -20,33 +20,18 @@
             <ul class="right hide-on-med-and-down">
                 <li><a href="#">checkin!</a></li>
                 <li><a href="#">Help!</a></li>
-                <li><a th:href="@{/v1/history/{token}(token=${myProfile.token})}" method="post">history</a></li>
+                <li><a th:href="@{/v1/default/user/thanks_list/{token}(token=${token})}" method="post">Thanks</a></li>
+                <li><a th:href="@{/v1/default/user/history/{token}(token=${token})}" method="post">history</a></li>
             </ul>
         </div>
     </nav>
     <ul class="sidenav" id="mobile-demo">
         <li><a href="#">checkin!</a></li>
         <li><a href="#">Help!</a></li>
-        <li><a th:href="@{/v1/history/{token}(token=${myProfile.token})}" method="post">history</a></li>
+        <li><a th:href="@{/v1/default/user/thanks_list/{token}(token=${token})}" method="post">Thanks</a></li>
+        <li><a th:href="@{/v1/default/user/history/{token}(token=${myProfile.token})}" method="post">history</a></li>
     </ul>
 </header>
-<!--nav>
-    <div class="nav-wrapper">
-        <a href="#" class="brand-logo center">micro-volunteer</a>
-        <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
-        <ul id="nav-mobile" class="right hide-on-med-and-down">
-            <li><a href="sass.html">checkin</a></li>
-            <li><a href="badges.html">Help!</a></li>
-            <li><a th:href="@{/v1/history/{token}(token=${myProfile.token})}" method="post">history</a></li>
-        </ul>
-    </div>
-</nav>
-<ul class="sidenav" id="mobile-demo">
-    <li><a href="sass.html">Sass</a></li>
-    <li><a href="badges.html">Components</a></li>
-    <li><a href="collapsible.html">Javascript</a></li>
-    <li><a href="mobile.html">Mobile</a></li>
-</ul-->
 
 <div class="card_list">
     <div class="col s12 m6">

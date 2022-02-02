@@ -20,7 +20,7 @@
 
 <div class="registration_form">
     <!--/*@thymesVar id="loginRequest" type="java"*/-->
-    <form th:action="@{/v1/default/user/login}" method="post" th:object="${loginRequest}" class="col s12">
+    <form th:action="@{/v1/default/user/mypage}" method="post" th:object="${loginRequest}" class="col s12">
         <div class="input-field col s6">
             <i class="material-icons prefix">email</i>
             <input th:field="*{email}" id="email" type="email" class="validate" >
