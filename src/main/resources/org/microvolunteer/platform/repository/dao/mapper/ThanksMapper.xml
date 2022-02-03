@@ -53,6 +53,10 @@
         from Help h
                  left join CheckinArea ca on h.area_id = ca.area_id
                  left join HandicapMaster hm on h.handicap_type = hm.handicap_type
-        where h.handicapped_id = #{handicapped_id} ORDER BY h.created_at LIMIT ${get_limit}
+        where h.handicapped_id = #{handicapped_id} and h.status = 2 ORDER BY h.created_at LIMIT ${get_limit}
     </select>
+    <update id="thanksStatusUpdate">
+        update Help set status = 3
+        where help_id = #{help_id} and handicapped_id = #{handicapped_id} and status = 2
+    </update>
 </mapper>

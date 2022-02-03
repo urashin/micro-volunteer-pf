@@ -9,8 +9,9 @@ import java.util.List;
 
 @Mapper
 public interface ThanksMapper {
-    public void thanks(Integer help_id, String handicapped_id, Integer satisfaction, Integer status);
-    public List<VolunteerHistory> getMyVolunteerHistory(String volunteer_id, Integer get_limit);
-    public List<SendThanks> getSendList(String handicapped_id, Integer get_limit);
-    public List<DoneThanks> getDoneList(String handicapped_id, Integer get_limit);
+    void thanks(Integer help_id, String handicapped_id, Integer satisfaction, Integer status);
+    void thanksStatusUpdate(Integer help_id, String handicapped_id);
+    List<VolunteerHistory> getMyVolunteerHistory(String volunteer_id, Integer get_limit);
+    List<SendThanks> getSendList(String handicapped_id, Integer get_limit);
+    List<DoneThanks> getDoneList(String handicapped_id, Integer get_limit);
 }

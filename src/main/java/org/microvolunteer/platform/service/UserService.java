@@ -143,6 +143,7 @@ public class UserService {
      */
     public void thanks(Integer help_id, String handicapped_id, Integer satisfaction) {
         thanksMapper.thanks(help_id,handicapped_id,satisfaction,1);
+        thanksMapper.thanksStatusUpdate(help_id, handicapped_id);
     }
 
     /**
