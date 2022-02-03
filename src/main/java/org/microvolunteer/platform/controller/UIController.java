@@ -5,6 +5,7 @@ import org.microvolunteer.platform.domain.resource.*;
 import org.microvolunteer.platform.domain.resource.request.HandicapRegisterRequest;
 import org.microvolunteer.platform.domain.resource.request.LoginRequest;
 import org.microvolunteer.platform.domain.resource.request.RegisterUserRequest;
+import org.microvolunteer.platform.domain.resource.request.SupportEvaluationRequest;
 import org.microvolunteer.platform.repository.dao.mapper.SnsRegisterMapper;
 import org.microvolunteer.platform.service.MatchingService;
 import org.microvolunteer.platform.service.SnsIdRegisterService;
@@ -183,6 +184,31 @@ public class UIController {
         logger.info("thanks list");
         // tokenからuser_idを取得
         String handicapped_id = tokenService.getUserId(token);
+        ThanksList thanksList = userService.getMyThanksList(handicapped_id, 10);
+        model.addAttribute(thanksList);
+        model.addAttribute("token", token);
+        return "my_thankslist";
+    }
+
+    @GetMapping("/default/user/support_evaluation/{token}/{help_id}")
+    public String getSupportEvaluation(@PathVariable String token, @PathVariable Integer help_id, Model model) {
+        logger.info("support evaluation getAPI");
+        // tokenからuser_idを取得
+        String handicapped_id = tokenService.getUserId(token);
+        SupportEvaluationRequest request = SupportEvaluationRequest.builder()
+                .help_id(help_id)
+                .build();
+        model.addAttribute(request);
+        model.addAttribute("token", token);
+        return "support_evaluation";
+    }
+
+    @PostMapping("/default/user/support_evaluation/{token}")
+    public String postSupportEvaluation(@PathVariable String token, SupportEvaluationRequest request, Model model) {
+        logger.info("support evaluation postAPI");
+        // tokenからuser_idを取得
+        String handicapped_id = tokenService.getUserId(token);
+        userService.thanks(request.getHelp_id(), handicapped_id, request.getSatisfaction());
         ThanksList thanksList = userService.getMyThanksList(handicapped_id, 10);
         model.addAttribute(thanksList);
         model.addAttribute("token", token);

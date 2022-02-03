@@ -37,8 +37,10 @@
     <ul class="collection">
         <li class="collection-item avatar" th:each="thanks : ${thanksList.send_list}">
             <img th:src="@{/img/{handicap_type}.png(handicap_type=${thanks.handicap_type})}" class="circle">
-            <span class="title" th:text="${thanks.handicap_name}"></span>
+            <span class="title" th:text="${thanks.datetime}"></span>
+            <p th:text="${thanks.handicap_name}"></p>
             <p th:text="${thanks.area_name}"></p>
+            <a th:href="@{/v1/default/user/support_evaluation/{token}/{help_id}(token=${token},help_id=${thanks.help_id})}" method="get" class="secondary-content"><i class="material-icons modal-trigger">favorite</i></a>
         </li>
     </ul>
 </div>
