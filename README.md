@@ -1,16 +1,13 @@
-# Tokyo OSS Party!! 2021
-
-[公式サイト](https://tokyo-oss-party.com/)
-
-ここは、TeamG マイクロボランティア支援隊 / Platform main リポジトリです。
+# micro-volunteer-pf
 
 
-### [document](https://github.com/urashin/micro-volunteer-docs)
+## 説明
+こちらは[Tokyo OSS Party!!](https://tokyo-oss-party.com/)で作成されたmicro-volunteerのplatform(本体)に関するrepositoryです。
 
-### [platform (backend : 主要機能)](https://github.com/urashin/micro-volunteer-pf/blob/master/how_to_use.md)
 
-* [利用方法](https://github.com/urashin/micro-volunteer-pf/blob/master/how_to_use.md)
-
-### [platform (backend : LINE連携部分)](https://github.com/urashin/micro-volunteer-pf-python)
-
-### [platformで動作するアプリのサンプル](https://github.com/urashin/micro-volunteer-app-sample)
+## ドキュメント
+[micro-volunteer に関する説明はこちらから](https://github.com/urashin/micro-volunteer-docs)
+- 想定しているサービス
+- 仮説検証の進行状況
+- 環境構築の方法
+- 使い方など
