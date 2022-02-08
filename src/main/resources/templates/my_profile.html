@@ -51,7 +51,20 @@
             <span class="title">[[${myHandicap.handicap_name}]]</span>
             <p>障がいの程度： [[${myHandicap.handicap_level}]] <br>
                 コメント： [[${myHandicap.comment}]] </p>
-            <a href="#" class="secondary-content"><i class="material-icons">delete</i></a>
+            <form th:action="@{/v1/default/user/help}" method="post" th:object="${helpRequest}" class="col s12">
+                <a class="secondary-content">
+                    <div class="card-action">
+                        <a class="waves-effect waves-light btn" type="submit" name="action"></a>
+                    </div>
+                    <i class="material-icons btn" type="submit" name="action">call_made</i>
+                </a>
+                <div class="input-field col s6" hidden>
+                    <input th:field="*{handicapinfo_id}" th:value="${myHandicap.handicapinfo_id}">
+                    <input th:field="*{x_geometry}" th:value="35.7107654">
+                    <input th:field="*{y_geometry}" th:value="139.795978">
+                    <input th:field="*{token}" th:value="${token}">
+                </div>
+            </form>
         </li>
     </ul>
     <div class="card-action">

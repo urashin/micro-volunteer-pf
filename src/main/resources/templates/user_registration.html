@@ -21,8 +21,7 @@
 <div class="registration_form">
     <form th:action="@{/v1/default/user/register/{token}(token=${registerUserRequest.token})}" method="post" th:object="${registerUserRequest}" class="col s12">
         <div class="input-field col s6">
-            <i class="material-icons prefix">名前</i>
-            <input th:field="*{name}" id="name" class="validate" >
+            <input th:field="*{name}" id="name" type="text" class="validate" >
             <label for="name">name</label>
         </div>
         <div class="input-field col s6">

@@ -19,6 +19,7 @@
     </select>
     <select id="getHandicapList" resultType="org.microvolunteer.platform.domain.resource.MyHandicap">
         select
+            HandicapInfo.handicapinfo_id,
             HandicapMaster.handicap_name,
             HandicapInfo.handicap_type,
             HandicapInfo.handicap_level,

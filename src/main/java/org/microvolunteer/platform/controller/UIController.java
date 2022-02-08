@@ -2,10 +2,7 @@ package org.microvolunteer.platform.controller;
 
 import org.microvolunteer.platform.api.client.LineMessageRestClient;
 import org.microvolunteer.platform.domain.resource.*;
-import org.microvolunteer.platform.domain.resource.request.HandicapRegisterRequest;
-import org.microvolunteer.platform.domain.resource.request.LoginRequest;
-import org.microvolunteer.platform.domain.resource.request.RegisterUserRequest;
-import org.microvolunteer.platform.domain.resource.request.SupportEvaluationRequest;
+import org.microvolunteer.platform.domain.resource.request.*;
 import org.microvolunteer.platform.repository.dao.mapper.SnsRegisterMapper;
 import org.microvolunteer.platform.service.MatchingService;
 import org.microvolunteer.platform.service.SnsIdRegisterService;
@@ -45,7 +42,7 @@ public class UIController {
     @Autowired
     private SnsIdRegisterService snsIdRegisterService;
 
-    @GetMapping("/user/register/{sns_id}")
+    @GetMapping("/default/user/register/{sns_id}")
     public String register(@PathVariable String sns_id, Model model) {
         logger.info("sns register API");
         RegisterUserRequest registerUserRequest = new RegisterUserRequest();
@@ -83,6 +80,8 @@ public class UIController {
 
         MyProfile myProfile = userService.getMyProfile(user_id, token);
         model.addAttribute(myProfile);
+        HelpRequest helpRequest = new HelpRequest();
+        model.addAttribute(helpRequest);
         model.addAttribute("token", token);
         return "my_profile";
     }
@@ -104,6 +103,8 @@ public class UIController {
 
         MyProfile myProfile = userService.getMyProfile(user_id, token);
         model.addAttribute(myProfile);
+        HelpRequest helpRequest = new HelpRequest();
+        model.addAttribute(helpRequest);
         model.addAttribute("token", token);
         return "my_profile";
     }
@@ -133,6 +134,8 @@ public class UIController {
         userService.registerHandicappedInfo(user_id,registerRequest);
         MyProfile myProfile = userService.getMyProfile(user_id, registerRequest.getToken());
         model.addAttribute(myProfile);
+        HelpRequest helpRequest = new HelpRequest();
+        model.addAttribute(helpRequest);
         model.addAttribute("token", token);
         return "my_profile";
     }
@@ -177,6 +180,22 @@ public class UIController {
         model.addAttribute("history", history);
         model.addAttribute("token", token);
         return "my_history";
+    }
+
+    @GetMapping("/default/user/help")
+    public String default_help_call(@PathVariable String token,HelpRequest helpRequest, Model model) {
+        logger.info("help list");
+        String user_id = tokenService.getUserId(helpRequest.getToken());
+        HandicapInfo handicapInfo = userService.getHandicappedInfo(helpRequest.getHandicapinfo_id());
+        matchingService.help(user_id, helpRequest, handicapInfo);
+
+        // help
+        // 対象ボランティアの抽出：近くにいる人達を検索する。
+        // 他の障害者、ボランティア混在しているが、助けられる人が助ければよいので分ける必要は無いと思う。
+        // 対象ボランティアに救援要請のpush通知を行う(python APIを使う)
+        // tokenからuser_idを取得
+        model.addAttribute("token", token);
+        return "help_call";
     }
 
     @GetMapping("/default/user/thanks_list/{token}")
