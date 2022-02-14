@@ -218,13 +218,11 @@ public class UIController {
         String token = helpRequest.getToken();
         String user_id = tokenService.getUserId(token);
         HandicapInfo handicapInfo = userService.getHandicappedInfo(helpRequest.getHandicapinfo_id());
-        /*
         try {
             matchingService.help(user_id, helpRequest, handicapInfo);
         } catch (Exception e) {
             logger.error("help error.");
         }
-         */
 
         MyHandicap myHandicap = userService.getMyHandicap(helpRequest.getHandicapinfo_id());
 
