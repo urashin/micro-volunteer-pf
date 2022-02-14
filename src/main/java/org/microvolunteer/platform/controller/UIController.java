@@ -140,6 +140,17 @@ public class UIController {
         return "my_profile";
     }
 
+    @PostMapping("/default/matching/listen")
+    public String default_handicap_register(ListenRequest listenRequest, Model model){
+        logger.info("handicap register API");
+        String user_id = tokenService.getUserId(listenRequest.getToken());
+        // listen_listをしゅとくする
+        AcceptRequest acceptRequest= new AcceptRequest();
+        model.addAttribute(acceptRequest);
+        model.addAttribute("token", listenRequest.getToken());
+        return "listen_list";
+    }
+
     @PostMapping("/default/user/register/{token}")
     public String default_register(@PathVariable String token, RegisterUserRequest registerUserRequest,Model model){
         logger.info("default register API");
@@ -182,20 +193,65 @@ public class UIController {
         return "my_history";
     }
 
-    @GetMapping("/default/user/help")
-    public String default_help_call(@PathVariable String token,HelpRequest helpRequest, Model model) {
-        logger.info("help list");
-        String user_id = tokenService.getUserId(helpRequest.getToken());
-        HandicapInfo handicapInfo = userService.getHandicappedInfo(helpRequest.getHandicapinfo_id());
-        matchingService.help(user_id, helpRequest, handicapInfo);
+    @GetMapping("/default/user/help/select/{token}/{handicap_id}")
+    public String default_help_select(@PathVariable String token, @PathVariable Integer handicap_id, Model model) {
+        logger.info("help_select api");
+        try {
+            tokenService.getUserId(token);
+        } catch (Exception e) {
+            logger.info("abuser");
+            return "abuser";
+        }
+        MyHandicap myHandicap = userService.getMyHandicap(handicap_id);
 
-        // help
-        // 対象ボランティアの抽出：近くにいる人達を検索する。
-        // 他の障害者、ボランティア混在しているが、助けられる人が助ければよいので分ける必要は無いと思う。
-        // 対象ボランティアに救援要請のpush通知を行う(python APIを使う)
-        // tokenからuser_idを取得
+        model.addAttribute(myHandicap);
+        HelpRequest helpRequest = new HelpRequest();
+        helpRequest.setToken(token);
+        model.addAttribute(helpRequest);
         model.addAttribute("token", token);
         return "help_call";
+    }
+
+    @PostMapping("/default/user/help/call")
+    public String default_help_call(HelpRequest helpRequest, Model model) {
+        logger.info("help call API");
+        String token = helpRequest.getToken();
+        String user_id = tokenService.getUserId(token);
+        HandicapInfo handicapInfo = userService.getHandicappedInfo(helpRequest.getHandicapinfo_id());
+        /*
+        try {
+            matchingService.help(user_id, helpRequest, handicapInfo);
+        } catch (Exception e) {
+            logger.error("help error.");
+        }
+         */
+
+        MyHandicap myHandicap = userService.getMyHandicap(helpRequest.getHandicapinfo_id());
+
+        model.addAttribute(myHandicap);
+        CancelRequest cancelRequest = new CancelRequest();
+        model.addAttribute(cancelRequest);
+        model.addAttribute("token", token);
+        return "help_wait";
+    }
+
+    @PostMapping("/default/user/help/cancel")
+    public String default_help_cancel(CancelRequest cancelRequest, Model model) {
+        logger.info("help cancel API");
+        String token = cancelRequest.getToken();
+        String user_id = tokenService.getUserId(token);
+        try {
+            matchingService.help_cancel(user_id);
+        } catch (Exception e) {
+            logger.error("help cancel error.");
+        }
+
+        MyProfile myProfile = userService.getMyProfile(user_id, cancelRequest.getToken());
+        model.addAttribute(myProfile);
+        HelpRequest helpRequest = new HelpRequest();
+        model.addAttribute(helpRequest);
+        model.addAttribute("token", token);
+        return "my_profile";
     }
 
     @GetMapping("/default/user/thanks_list/{token}")

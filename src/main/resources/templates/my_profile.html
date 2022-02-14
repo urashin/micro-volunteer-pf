@@ -15,7 +15,7 @@
 <header>
     <nav>
         <div class="nav-wrapper">
-            <a href="#" class="brand-logo">micro volunteer</a>
+            <a th:href="@{/v1/user/mypage/{token}(token=${token})}" method="get" class="brand-logo">micro-volunteer</a>
             <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
             <ul class="right hide-on-med-and-down">
                 <li><a href="#">checkin!</a></li>
@@ -29,7 +29,7 @@
         <li><a href="#">checkin!</a></li>
         <li><a href="#">Help!</a></li>
         <li><a th:href="@{/v1/default/user/thanks_list/{token}(token=${token})}" method="post">Thanks</a></li>
-        <li><a th:href="@{/v1/default/user/history/{token}(token=${myProfile.token})}" method="post">history</a></li>
+        <li><a th:href="@{/v1/default/user/history/{token}(token=${token})}" method="post">history</a></li>
     </ul>
 </header>
 
@@ -44,28 +44,17 @@
         </div>
     </div>
     <ul class="collection">
-        <li class="collection-item avatar" th:each="myHandicap: ${myProfile.handicap_list}">
+        <form th:action="@{/v1/default/user/help/select/{token}(token=${token})}" method="post" th:object="${helpRequest}" class="col s12">
+            <li class="collection-item avatar" th:each="myHandicap: ${myProfile.handicap_list}">
             <i class="material-icons">
                 <img th:src="@{/img/{handicap_type}.png(handicap_type=${myHandicap.handicap_type})}" class="circle">
             </i>
             <span class="title">[[${myHandicap.handicap_name}]]</span>
             <p>障がいの程度： [[${myHandicap.handicap_level}]] <br>
                 コメント： [[${myHandicap.comment}]] </p>
-            <form th:action="@{/v1/default/user/help}" method="post" th:object="${helpRequest}" class="col s12">
-                <a class="secondary-content">
-                    <div class="card-action">
-                        <a class="waves-effect waves-light btn" type="submit" name="action"></a>
-                    </div>
-                    <i class="material-icons btn" type="submit" name="action">call_made</i>
-                </a>
-                <div class="input-field col s6" hidden>
-                    <input th:field="*{handicapinfo_id}" th:value="${myHandicap.handicapinfo_id}">
-                    <input th:field="*{x_geometry}" th:value="35.7107654">
-                    <input th:field="*{y_geometry}" th:value="139.795978">
-                    <input th:field="*{token}" th:value="${token}">
-                </div>
-            </form>
-        </li>
+                <a th:href="@{/v1/default/user/help/select/{token}/{handicap_id}(token=${token},handicap_id=${myHandicap.handicapinfo_id})}" class="secondary-content"><i class="material-icons">call_made</i></a>
+            </li>
+        </form>
     </ul>
     <div class="card-action">
         <a class="waves-effect waves-light btn" th:href="@{/v1/default/user/handicap/register/{token}(token=${myProfile.token})}" method="get">追加</a>

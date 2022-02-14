@@ -47,7 +47,6 @@
 <div class="registration_form">
     <ul class="collection">
         <li class="collection-item avatar" th:each="thanks : ${thanksList.done_list}">
-            <!--span class="badge" th:text="${myactivity.satisfaction}"> </span-->
             <img th:src="@{/img/{handicap_type}.png(handicap_type=${thanks.handicap_type})}" class="circle">
             <span class="title" th:text="${thanks.handicap_name}"></span>
             <p th:text="${thanks.area_name}"></p>

@@ -10,6 +10,7 @@ import java.util.List;
 @Mapper
 public interface HelpMapper {
     void registerHelp(RegisterHelp help);
+    void cancel(String handicapped_id);
     Help getHelpInfo(Integer help_id);
     Integer getHelpId(String user_id);
     String getVolunteerId(Integer help_id);

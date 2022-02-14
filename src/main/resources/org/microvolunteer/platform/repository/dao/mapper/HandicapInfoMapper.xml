@@ -33,6 +33,22 @@
         where
             HandicapInfo.handicapped_id = #{handicapped_id}
     </select>
+    <select id="getHandicap" resultType="org.microvolunteer.platform.domain.resource.MyHandicap">
+        select
+            HandicapInfo.handicapinfo_id,
+            HandicapMaster.handicap_name,
+            HandicapInfo.handicap_type,
+            HandicapInfo.handicap_level,
+            HandicapInfo.reliability_th,
+            HandicapInfo.severity,
+            HandicapInfo.comment
+        from
+            HandicapInfo
+                left join HandicapMaster on
+                HandicapMaster.handicap_type = HandicapInfo.handicap_type
+        where
+            HandicapInfo.handicapinfo_id = #{handicapinfo_id}
+    </select>
     <insert id="registerHandicapInfo">
         insert into HandicapInfo(
             handicapped_id
