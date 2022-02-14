@@ -20,7 +20,6 @@
 </header>
 
 <div class="card_list">
-    <!--form th:action="@{/v1/default/user/support_evaluation/{token}/{help_id}(token=${token},help_id=${supportEvaluationRequest.help_id})}" method="post" th:object="${supportEvaluationRequest}" class="col s12"-->
     <form th:action="@{/v1/default/user/support_evaluation/{token}(token=${token})}" method="post" th:object="${supportEvaluationRequest}" class="col s12">
         <div class="input-field col s12">
             <i>サポート結果はいかがでしたか？</i>

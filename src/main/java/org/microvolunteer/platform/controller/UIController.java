@@ -2,10 +2,7 @@ package org.microvolunteer.platform.controller;
 
 import org.microvolunteer.platform.api.client.LineMessageRestClient;
 import org.microvolunteer.platform.domain.resource.*;
-import org.microvolunteer.platform.domain.resource.request.HandicapRegisterRequest;
-import org.microvolunteer.platform.domain.resource.request.LoginRequest;
-import org.microvolunteer.platform.domain.resource.request.RegisterUserRequest;
-import org.microvolunteer.platform.domain.resource.request.SupportEvaluationRequest;
+import org.microvolunteer.platform.domain.resource.request.*;
 import org.microvolunteer.platform.repository.dao.mapper.SnsRegisterMapper;
 import org.microvolunteer.platform.service.MatchingService;
 import org.microvolunteer.platform.service.SnsIdRegisterService;
@@ -45,7 +42,7 @@ public class UIController {
     @Autowired
     private SnsIdRegisterService snsIdRegisterService;
 
-    @GetMapping("/user/register/{sns_id}")
+    @GetMapping("/default/user/register/{sns_id}")
     public String register(@PathVariable String sns_id, Model model) {
         logger.info("sns register API");
         RegisterUserRequest registerUserRequest = new RegisterUserRequest();
@@ -83,6 +80,8 @@ public class UIController {
 
         MyProfile myProfile = userService.getMyProfile(user_id, token);
         model.addAttribute(myProfile);
+        HelpRequest helpRequest = new HelpRequest();
+        model.addAttribute(helpRequest);
         model.addAttribute("token", token);
         return "my_profile";
     }
@@ -104,6 +103,8 @@ public class UIController {
 
         MyProfile myProfile = userService.getMyProfile(user_id, token);
         model.addAttribute(myProfile);
+        HelpRequest helpRequest = new HelpRequest();
+        model.addAttribute(helpRequest);
         model.addAttribute("token", token);
         return "my_profile";
     }
@@ -133,8 +134,21 @@ public class UIController {
         userService.registerHandicappedInfo(user_id,registerRequest);
         MyProfile myProfile = userService.getMyProfile(user_id, registerRequest.getToken());
         model.addAttribute(myProfile);
+        HelpRequest helpRequest = new HelpRequest();
+        model.addAttribute(helpRequest);
         model.addAttribute("token", token);
         return "my_profile";
+    }
+
+    @PostMapping("/default/matching/listen")
+    public String default_handicap_register(ListenRequest listenRequest, Model model){
+        logger.info("handicap register API");
+        String user_id = tokenService.getUserId(listenRequest.getToken());
+        // listen_listをしゅとくする
+        AcceptRequest acceptRequest= new AcceptRequest();
+        model.addAttribute(acceptRequest);
+        model.addAttribute("token", listenRequest.getToken());
+        return "listen_list";
     }
 
     @PostMapping("/default/user/register/{token}")
@@ -177,6 +191,65 @@ public class UIController {
         model.addAttribute("history", history);
         model.addAttribute("token", token);
         return "my_history";
+    }
+
+    @GetMapping("/default/user/help/select/{token}/{handicap_id}")
+    public String default_help_select(@PathVariable String token, @PathVariable Integer handicap_id, Model model) {
+        logger.info("help_select api");
+        try {
+            tokenService.getUserId(token);
+        } catch (Exception e) {
+            logger.info("abuser");
+            return "abuser";
+        }
+        MyHandicap myHandicap = userService.getMyHandicap(handicap_id);
+
+        model.addAttribute(myHandicap);
+        HelpRequest helpRequest = new HelpRequest();
+        helpRequest.setToken(token);
+        model.addAttribute(helpRequest);
+        model.addAttribute("token", token);
+        return "help_call";
+    }
+
+    @PostMapping("/default/user/help/call")
+    public String default_help_call(HelpRequest helpRequest, Model model) {
+        logger.info("help call API");
+        String token = helpRequest.getToken();
+        String user_id = tokenService.getUserId(token);
+        HandicapInfo handicapInfo = userService.getHandicappedInfo(helpRequest.getHandicapinfo_id());
+        try {
+            matchingService.help(user_id, helpRequest, handicapInfo);
+        } catch (Exception e) {
+            logger.error("help error.");
+        }
+
+        MyHandicap myHandicap = userService.getMyHandicap(helpRequest.getHandicapinfo_id());
+
+        model.addAttribute(myHandicap);
+        CancelRequest cancelRequest = new CancelRequest();
+        model.addAttribute(cancelRequest);
+        model.addAttribute("token", token);
+        return "help_wait";
+    }
+
+    @PostMapping("/default/user/help/cancel")
+    public String default_help_cancel(CancelRequest cancelRequest, Model model) {
+        logger.info("help cancel API");
+        String token = cancelRequest.getToken();
+        String user_id = tokenService.getUserId(token);
+        try {
+            matchingService.help_cancel(user_id);
+        } catch (Exception e) {
+            logger.error("help cancel error.");
+        }
+
+        MyProfile myProfile = userService.getMyProfile(user_id, cancelRequest.getToken());
+        model.addAttribute(myProfile);
+        HelpRequest helpRequest = new HelpRequest();
+        model.addAttribute(helpRequest);
+        model.addAttribute("token", token);
+        return "my_profile";
     }
 
     @GetMapping("/default/user/thanks_list/{token}")

@@ -1,5 +1,6 @@
 package org.microvolunteer.platform.service;
 
+import org.microvolunteer.platform.controller.Controller;
 import org.microvolunteer.platform.domain.dto.ActivityDto;
 import org.microvolunteer.platform.domain.resource.request.HandicapRegisterRequest;
 import org.microvolunteer.platform.domain.resource.*;
@@ -7,6 +8,8 @@ import org.microvolunteer.platform.repository.dao.mapper.HandicapInfoMapper;
 import org.microvolunteer.platform.repository.dao.mapper.ThanksMapper;
 import org.microvolunteer.platform.repository.dao.mapper.UserMapper;
 import org.microvolunteer.platform.domain.dto.GeometryDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,6 +21,8 @@ import java.util.UUID;
 
 @Service
 public class UserService {
+    private Logger logger = LoggerFactory.getLogger(Controller.class);
+
     @Autowired
     private UserMapper userMapper;
 
@@ -131,6 +136,15 @@ public class UserService {
 
     /**
      * 障害者の障害情報を取得
+     * @param handicap_id
+     */
+    public MyHandicap getMyHandicap(Integer handicap_id) {
+        MyHandicap handicap= handicapInfoMapper.getHandicap(handicap_id);
+        return handicap;
+    }
+
+    /**
+     * 障害者の障害情報を取得
      * @param handicapped_id
      */
     public List<MyHandicap> getMyHandicapList(String handicapped_id) {
@@ -142,8 +156,16 @@ public class UserService {
      * 助けてもらったお礼、評価
      */
     public void thanks(Integer help_id, String handicapped_id, Integer satisfaction) {
-        thanksMapper.thanks(help_id,handicapped_id,satisfaction,1);
-        thanksMapper.thanksStatusUpdate(help_id, handicapped_id);
+        try {
+            thanksMapper.thanks(help_id, handicapped_id, satisfaction, 1);
+        } catch (Exception e) {
+            logger.info("thanksMapper.thanks error: ");
+        }
+        try {
+            thanksMapper.thanksStatusUpdate(help_id, handicapped_id);
+        } catch (Exception e) {
+            logger.info("thanksMapper.thanksStatusUpdate error: ");
+        }
     }
 
     /**

@@ -21,7 +21,6 @@
 
 <div class="card_list">
     <form th:action="@{/v1/default/user/handicap/register/{token}(token=${handicapRegisterRequest.token})}" method="post" th:object="${handicapRegisterRequest}" class="col s12">
-    <!--form th:action="@{/v1/default/user/handicap/register}" method="post" th:object="${handicapRegisterRequest}" class="col s12"-->
         <div class="input-field col s12">
             <i>障がいの種類</i>
             <select th:field="*{handicap_type}" id="handicap_type">

@@ -80,12 +80,19 @@ public class MatchingService {
         // 近くにいる人達を検索する。
         // 他の障害者、ボランティア混在しているが、助けられる人が助ければよいので分ける必要は無いと思う。
         List<NeighborDistance> neighborsList = helpMapper.getNeighborhood(my_id, location);
-        for (NeighborDistance neighborDistance : neighborsList) {
-            String sns_id = snsRegisterMapper.getSnsId(neighborDistance.getUser_id());
-            lineMessageRestClient.requestHelp(sns_id,neighborDistance,handicapInfo);
+        try {
+            for (NeighborDistance neighborDistance : neighborsList) {
+                String sns_id = snsRegisterMapper.getSnsId(neighborDistance.getUser_id());
+                lineMessageRestClient.requestHelp(sns_id, neighborDistance, handicapInfo);
+            }
+        } catch(Exception e) {
+            logger.info("line message error.");
         }
     }
 
+    public void help_cancel(String my_id) {
+        helpMapper.cancel(my_id);
+    }
     public List<NeighborDistance> getNeigborhood(String my_id, String location) {
         List<NeighborDistance> neighborList = helpMapper.getNeighborhood(my_id, location);
         return neighborList;

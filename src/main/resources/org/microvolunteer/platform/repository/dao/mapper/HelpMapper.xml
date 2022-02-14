@@ -20,7 +20,7 @@
         values(
             #{handicapped_id}
             ,null
-            ,ST_GeomFromText(#{location})
+            ,ST_GeomFromText(#{location},4326)
             ,#{area_id}
             ,#{handicap_type}
             ,#{handicap_level}
@@ -29,6 +29,9 @@
             ,#{comment}
             ,#{status})
     </insert>
+    <delete id="cancel">
+        delete from Help where handicapped_id = #{handicapped_id} and status = 1
+    </delete>
     <update id="registerMatching">
         update MyGeometry set
             volunteer_id = #{volunteer_id}
@@ -72,5 +75,15 @@
         WHERE
             user_id != #{my_id} AND status = 1
         order by distance LIMIT 5;
+    </select>
+    <select id="listenHelp" resultType="org.microvolunteer.platform.domain.resource.NeighborDistance">
+        SELECT user_id,
+            ST_X(location) y_geometry,
+            ST_Y(location) x_geometry,
+            ST_Distance(location, ST_GeomFromText(#{location},4326)) distance
+        FROM MyGeometry
+        WHERE
+            user_id != #{my_id} AND status = 1
+            order by distance LIMIT 5;
     </select>
 </mapper>
