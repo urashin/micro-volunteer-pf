@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -86,13 +87,38 @@ public class MatchingService {
                 lineMessageRestClient.requestHelp(sns_id, neighborDistance, handicapInfo);
             }
         } catch(Exception e) {
-            logger.info("line message error.");
+            logger.error("line message error.");
         }
     }
 
     public void help_cancel(String my_id) {
         helpMapper.cancel(my_id);
     }
+
+    public SignalList getHelpSignals(String my_id, String x_geometry, String y_geometry) {
+        String location = GeometryDto.getPoint(x_geometry, y_geometry);
+        List<HelpSignal> helpSignals;
+        try {
+            helpSignals = helpMapper.getHelpSignals(my_id, location);
+        } catch (Exception e) {
+            helpSignals = new ArrayList<>();
+            logger.info("no help signal found.");
+        }
+        return SignalList.builder().help_signals(helpSignals).build();
+    }
+
+    public HelpSignal getHelpSignal(Integer help_id, String x_geometry, String y_geometry) {
+        String location = GeometryDto.getPoint(x_geometry, y_geometry);
+        HelpSignal helpSignal;
+        try {
+            helpSignal = helpMapper.getHelpSignal(help_id, location);
+        } catch (Exception e) {
+            helpSignal = null;
+            logger.info("no help signal found.");
+        }
+        return helpSignal;
+    }
+
     public List<NeighborDistance> getNeigborhood(String my_id, String location) {
         List<NeighborDistance> neighborList = helpMapper.getNeighborhood(my_id, location);
         return neighborList;

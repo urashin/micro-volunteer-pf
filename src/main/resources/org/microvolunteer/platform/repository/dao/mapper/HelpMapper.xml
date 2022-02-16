@@ -61,10 +61,49 @@
         from Help
         where help_id = #{help_id};
     </select>
-    <select id="getHelp">
+    <!--select id="getHelp">
         select CONVERT(ST_X(location),NCHAR), CONVERT(ST_Y(location),NCHAR)
         from MyGeometry
         where user_id = #{user_id}
+    </select-->
+    <select id="getHelpSignals" resultType="org.microvolunteer.platform.domain.resource.HelpSignal">
+        SELECT
+               h.help_id,
+               ca.area_name,
+               hm.handicap_name,
+               ST_X(h.location) y_geometry,
+               ST_Y(h.location) x_geometry,
+               ST_Distance(h.location, ST_GeomFromText(#{location},4326)) distance,
+               h.handicap_type,
+               h.handicap_level,
+               h.comment,
+               h.created_at,
+               h.updated_at
+        FROM Help h
+            LEFT JOIN CheckinArea ca ON h.area_id = ca.area_id
+            LEFT JOIN HandicapMaster hm ON h.handicap_type = hm.handicap_type
+        WHERE
+            h.handicapped_id != #{my_id} AND h.status = 1
+        order by distance LIMIT 5;
+    </select>
+    <select id="getHelpSignal" resultType="org.microvolunteer.platform.domain.resource.HelpSignal">
+        SELECT
+            h.help_id,
+            ca.area_name,
+            hm.handicap_name,
+            ST_X(h.location) y_geometry,
+            ST_Y(h.location) x_geometry,
+            ST_Distance(h.location, ST_GeomFromText(#{location},4326)) distance,
+            h.handicap_type,
+            h.handicap_level,
+            h.comment,
+            h.created_at,
+            h.updated_at
+        FROM Help h
+                 LEFT JOIN CheckinArea ca ON h.area_id = ca.area_id
+                 LEFT JOIN HandicapMaster hm ON h.handicap_type = hm.handicap_type
+        WHERE
+            h.help_id = #{help_id}
     </select>
     <select id="getNeighborhood" resultType="org.microvolunteer.platform.domain.resource.NeighborDistance">
         SELECT user_id,
