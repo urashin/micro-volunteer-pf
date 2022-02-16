@@ -13,6 +13,7 @@ public class ListenRequest {
     @Size(min=16, max=64)
     private String token;
 
+    private Integer area_id;
     private String x_geometry;
     private String y_geometry;
 }

@@ -140,15 +140,21 @@ public class UIController {
         return "my_profile";
     }
 
-    @PostMapping("/default/matching/listen")
-    public String default_handicap_register(ListenRequest listenRequest, Model model){
-        logger.info("handicap register API");
-        String user_id = tokenService.getUserId(listenRequest.getToken());
+    /*
+       <a th:href="@{/v1/matching/listen/{token}(token=${token})}" class="secondary-content"><i class="material-icons">hearing</i></a>
+       <a th:href="@{/v1/matching/checkin/{token}(token=${token})}" class="secondary-content"><i class="material-icons">location_on</i></a>
+     */
+    @GetMapping("/default/matching/listen/{token}")
+    public String default_listen(@PathVariable String token, Model model){
+        logger.info("listen API");
+        String user_id = tokenService.getUserId(token);
         // listen_listをしゅとくする
-        AcceptRequest acceptRequest= new AcceptRequest();
-        model.addAttribute(acceptRequest);
-        model.addAttribute("token", listenRequest.getToken());
-        return "listen_list";
+        ListenRequest listenRequest = ListenRequest.builder()
+                .token(token)
+                .build();
+        model.addAttribute(listenRequest);
+        model.addAttribute("token", token);
+        return "listen";
     }
 
     @PostMapping("/default/user/register/{token}")
@@ -250,6 +256,49 @@ public class UIController {
         model.addAttribute(helpRequest);
         model.addAttribute("token", token);
         return "my_profile";
+    }
+
+    @PostMapping("/default/matching/listen-signals")
+    public String default_listen_signals(ListenRequest listenRequest, Model model) {
+        logger.info("listen-signals API");
+        String token = listenRequest.getToken();
+        String user_id = tokenService.getUserId(token);
+        SignalList signalList = matchingService.getHelpSignals(user_id, listenRequest.getX_geometry(), listenRequest.getY_geometry());
+
+        AcceptRequest acceptRequest = new AcceptRequest();
+        model.addAttribute(acceptRequest);
+        model.addAttribute(signalList);
+        model.addAttribute("token", token);
+        return "listen_signals";
+    }
+
+    @GetMapping("/default/matching/accept/{token}/{help_id}")
+    public String default_accept(@PathVariable String token, @PathVariable Integer help_id, Model model) {
+        logger.info("listen-signals API");
+        String user_id = tokenService.getUserId(token);
+        Location geo = matchingService.getMyGeometry(user_id);
+        HelpSignal helpSignal = matchingService.getHelpSignal(help_id,geo.getX_geometry(), geo.getY_geometry());
+
+        AcceptRequest acceptRequest = new AcceptRequest();
+        model.addAttribute(acceptRequest);
+        model.addAttribute(helpSignal);
+        model.addAttribute("token", token);
+        return "accept";
+    }
+
+    @PostMapping("/default/matching/accept")
+    public String default_accept_rush(AcceptRequest acceptRequest, Model model) {
+        logger.info("accept API");
+        String user_id = tokenService.getUserId(acceptRequest.getToken());
+        Location geo = matchingService.getMyGeometry(user_id);
+        matchingService.accept(acceptRequest.getHelp_id(),user_id);
+        HelpSignal helpSignal = matchingService.getHelpSignal(acceptRequest.getHelp_id(),geo.getX_geometry(), geo.getY_geometry());
+
+        CancelRequest cancelRequest = new CancelRequest();
+        model.addAttribute(cancelRequest);
+        model.addAttribute(helpSignal);
+        model.addAttribute("token", acceptRequest.getToken());
+        return "rush";
     }
 
     @GetMapping("/default/user/thanks_list/{token}")
