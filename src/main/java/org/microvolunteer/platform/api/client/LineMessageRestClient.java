@@ -114,8 +114,7 @@ public class LineMessageRestClient {
                     .accept(MediaType.APPLICATION_JSON)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(lineLocationMessage);
-            logger.info("LineMessageRestClient: debug mode");
-            //ResponseEntity<LineLocationMessageResponse> response = restTemplate.exchange(request, LineLocationMessageResponse.class);
+            ResponseEntity<LineLocationMessageResponse> response = restTemplate.exchange(request, LineLocationMessageResponse.class);
 
         } catch (RestClientException e) {
             logger.info("RestClient error : {}", e.toString());
