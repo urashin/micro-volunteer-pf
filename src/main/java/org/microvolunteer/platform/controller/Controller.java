@@ -15,7 +15,7 @@ import java.util.List;
 
 
 @RestController
-@RequestMapping("/v1")
+@RequestMapping("/v1/api")
 @Slf4j
 public class Controller {
     private Logger logger = LoggerFactory.getLogger(Controller.class);
