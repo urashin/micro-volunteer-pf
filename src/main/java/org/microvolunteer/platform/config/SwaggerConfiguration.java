@@ -23,8 +23,6 @@ public class SwaggerConfiguration {
     }
 
     private Predicate<String> paths() {
-        // ドキュメント生成の対象とするAPIのURLを指定
-        // この場合、「/user」で始まるAPIがドキュメント生成対象となる
         return Predicates.or(Predicates.containsPattern("/v1/api*"));
     }
 
