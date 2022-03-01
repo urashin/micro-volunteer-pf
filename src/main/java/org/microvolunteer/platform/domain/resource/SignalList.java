@@ -8,5 +8,5 @@ import java.util.List;
 @Data
 @Builder
 public class SignalList {
-    List<HelpSignal> help_signals;
+    List<HelpSignal> helpSignals;
 }

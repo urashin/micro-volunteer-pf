@@ -20,16 +20,16 @@
             <ul class="right hide-on-med-and-down">
                 <li><a href="#">checkin!</a></li>
                 <li><a href="#">Help!</a></li>
-                <li><a th:href="@{/v1/default/user/thanks_list/{token}(token=${token})}" method="post">Thanks</a></li>
-                <li><a th:href="@{/v1/default/user/history/{token}(token=${token})}" method="post">history</a></li>
+                <li><a th:href="@{/v1/user/thanks_list/{token}(token=${token})}" method="post">Thanks</a></li>
+                <li><a th:href="@{/v1/user/history/{token}(token=${token})}" method="post">history</a></li>
             </ul>
         </div>
     </nav>
     <ul class="sidenav" id="mobile-demo">
         <li><a href="#">checkin!</a></li>
         <li><a href="#">Help!</a></li>
-        <li><a th:href="@{/v1/default/user/thanks_list/{token}(token=${token})}" method="post">Thanks</a></li>
-        <li><a th:href="@{/v1/default/user/history/{token}(token=${token})}" method="post">history</a></li>
+        <li><a th:href="@{/v1/user/thanks_list/{token}(token=${token})}" method="post">Thanks</a></li>
+        <li><a th:href="@{/v1/user/history/{token}(token=${token})}" method="post">history</a></li>
     </ul>
 </header>
 
@@ -37,8 +37,8 @@
     <div class="col s12 m6">
         <div class="card blue-grey darken-1">
             <div class="card-content white-text">
-                <a th:href="@{/v1/default/matching/listen/{token}(token=${token})}" method="post" class="secondary-content"><i class="material-icons">hearing</i></a>
-                <a th:href="@{/v1/default/matching/checkin/{token}(token=${token})}" method="post" class="secondary-content"><i class="material-icons">location_on</i></a>
+                <a th:href="@{/v1/matching/listen/{token}(token=${token})}" method="post" class="secondary-content"><i class="material-icons">hearing</i></a>
+                <a th:href="@{/v1/matching/checkin/{token}(token=${token})}" method="post" class="secondary-content"><i class="material-icons">location_on</i></a>
                 <span class="card-title">[[${myProfile.volunteer_summary.my_name}]]</span>
                 <p>助けた回数： [[${myProfile.volunteer_summary.support_count}]]</p>
                 <p>平均満足度： [[${myProfile.volunteer_summary.average_satisfaction}]]</p>
@@ -47,7 +47,7 @@
     </div>
 
     <ul class="collection">
-        <form th:action="@{/v1/default/user/help/select/{token}(token=${token})}" method="post" th:object="${helpRequest}" class="col s12">
+        <form th:action="@{/v1/user/help/select/{token}(token=${token})}" method="post" th:object="${helpRequest}" class="col s12">
             <li class="collection-item avatar" th:each="myHandicap: ${myProfile.handicap_list}">
             <i class="material-icons">
                 <img th:src="@{/img/{handicap_type}.png(handicap_type=${myHandicap.handicap_type})}" class="circle">
@@ -55,12 +55,12 @@
             <span class="title">[[${myHandicap.handicap_name}]]</span>
             <p>障がいの程度： [[${myHandicap.handicap_level}]] <br>
                 コメント： [[${myHandicap.comment}]] </p>
-                <a th:href="@{/v1/default/user/help/select/{token}/{handicap_id}(token=${token},handicap_id=${myHandicap.handicapinfo_id})}" class="secondary-content"><i class="material-icons">call_made</i></a>
+                <a th:href="@{/v1/user/help/select/{token}/{handicap_id}(token=${token},handicap_id=${myHandicap.handicapinfo_id})}" class="secondary-content"><i class="material-icons">call_made</i></a>
             </li>
         </form>
     </ul>
     <div class="card-action">
-        <a class="waves-effect waves-light btn" th:href="@{/v1/default/user/handicap/register/{token}(token=${myProfile.token})}" method="get">追加</a>
+        <a class="waves-effect waves-light btn" th:href="@{/v1/user/handicap/register/{token}(token=${token})}" method="get">追加</a>
     </div>
 </div>
 <script>

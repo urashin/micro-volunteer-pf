@@ -20,22 +20,22 @@
             <ul class="right hide-on-med-and-down">
                 <li><a href="#">checkin!</a></li>
                 <li><a href="#">Help!</a></li>
-                <li><a th:href="@{/v1/default/user/thanks_list/{token}(token=${token})}" method="post">Thanks</a></li>
-                <li><a th:href="@{/v1/default/user/history/{token}(token=${token})}" method="post">history</a></li>
+                <li><a th:href="@{/v1/user/thanks_list/{token}(token=${token})}" method="post">Thanks</a></li>
+                <li><a th:href="@{/v1/user/history/{token}(token=${token})}" method="post">history</a></li>
             </ul>
         </div>
     </nav>
     <ul class="sidenav" id="mobile-demo">
         <li><a href="#">checkin!</a></li>
         <li><a href="#">Help!</a></li>
-        <li><a th:href="@{/v1/default/user/thanks_list/{token}(token=${token})}" method="post">Thanks</a></li>
-        <li><a th:href="@{/v1/default/user/history/{token}(token=${token})}" method="post">history</a></li>
+        <li><a th:href="@{/v1/user/thanks_list/{token}(token=${token})}" method="post">Thanks</a></li>
+        <li><a th:href="@{/v1/user/history/{token}(token=${token})}" method="post">history</a></li>
     </ul>
 </header>
 
 <div class="card_list">
     <ul>
-    <form th:action="@{/v1/default/matching/listen-signals}" method="post" th:object="${listenRequest}" class="col s12">
+    <form th:action="@{/v1/matching/listen-signals}" method="post" th:object="${listenRequest}" class="col s12">
         <span class="card-title">現在地を選択してください</span>
         <div class="input-field col s6" hidden>
             <input name="y_geometry" th:value="35.7107654">
