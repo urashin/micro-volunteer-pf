@@ -21,7 +21,7 @@
                 <li><a href="#">checkin!</a></li>
                 <li><a href="#">Help!</a></li>
                 <li><a href="#">Thanks</a></li>
-                <li><a th:href="@{/v1/default/user/history/{token}(token=${token})}" method="post">history</a></li>
+                <li><a th:href="@{/v1/user/history/{token}(token=${token})}" method="post">history</a></li>
             </ul>
         </div>
     </nav>
@@ -29,7 +29,7 @@
         <li><a href="#">checkin!</a></li>
         <li><a href="#">Help!</a></li>
         <li><a href="#">Thanks</a></li>
-        <li><a th:href="@{/v1/default/user/history/{token}(token=${token})}" method="post">history</a></li>
+        <li><a th:href="@{/v1/user/history/{token}(token=${token})}" method="post">history</a></li>
     </ul>
 </header>
 
@@ -40,7 +40,7 @@
             <span class="title" th:text="${thanks.datetime}"></span>
             <p th:text="${thanks.handicap_name}"></p>
             <p th:text="${thanks.area_name}"></p>
-            <a th:href="@{/v1/default/user/support_evaluation/{token}/{help_id}(token=${token},help_id=${thanks.help_id})}" method="get" class="secondary-content"><i class="material-icons modal-trigger">favorite</i></a>
+            <a th:href="@{/v1/user/support_evaluation/{token}/{help_id}(token=${token},help_id=${thanks.help_id})}" method="get" class="secondary-content"><i class="material-icons modal-trigger">favorite</i></a>
         </li>
     </ul>
 </div>

@@ -16,4 +16,5 @@ public class ListenRequest {
     private Integer area_id;
     private String x_geometry;
     private String y_geometry;
+    private Integer radius;
 }

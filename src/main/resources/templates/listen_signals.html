@@ -20,22 +20,22 @@
             <ul class="right hide-on-med-and-down">
                 <li><a href="#">checkin!</a></li>
                 <li><a href="#">Help!</a></li>
-                <li><a th:href="@{/v1/default/user/thanks_list/{token}(token=${token})}" method="post">Thanks</a></li>
-                <li><a th:href="@{/v1/default/user/history/{token}(token=${token})}" method="post">history</a></li>
+                <li><a th:href="@{/v1/user/thanks_list/{token}(token=${token})}" method="post">Thanks</a></li>
+                <li><a th:href="@{/v1/user/history/{token}(token=${token})}" method="post">history</a></li>
             </ul>
         </div>
     </nav>
     <ul class="sidenav" id="mobile-demo">
         <li><a href="#">checkin!</a></li>
         <li><a href="#">Help!</a></li>
-        <li><a th:href="@{/v1/default/user/thanks_list/{token}(token=${token})}" method="post">Thanks</a></li>
-        <li><a th:href="@{/v1/default/user/history/{token}(token=${token})}" method="post">history</a></li>
+        <li><a th:href="@{/v1/user/thanks_list/{token}(token=${token})}" method="post">Thanks</a></li>
+        <li><a th:href="@{/v1/user/history/{token}(token=${token})}" method="post">history</a></li>
     </ul>
 </header>
 
 <div class="card_list">
     <ul class="collection">
-            <li class="collection-item avatar" th:each="helpSignal: ${signalList.help_signals}">
+            <li class="collection-item avatar" th:each="helpSignal: ${signalList.helpSignals}">
             <i class="material-icons">
                 <img th:src="@{/img/{handicap_type}.png(handicap_type=${helpSignal.handicap_type})}" class="circle">
             </i>
@@ -43,7 +43,7 @@
             <p>障がいの程度： [[${helpSignal.handicap_level}]] <br>
                 コメント： [[${helpSignal.comment}]] </p>
             <p>距離： [[${helpSignal.distance}]]  m<br>
-                <a th:href="@{/v1/default/matching/accept/{token}/{help_id}(token=${token},help_id=${helpSignal.help_id})}" class="secondary-content"><i class="material-icons">directions_run</i></a>
+                <a th:href="@{/v1/matching/accept/{token}/{help_id}(token=${token},help_id=${helpSignal.help_id})}" class="secondary-content"><i class="material-icons">directions_run</i></a>
             </li>
     </ul>
 </div>

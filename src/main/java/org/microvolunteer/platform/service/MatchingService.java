@@ -104,7 +104,9 @@ public class MatchingService {
             helpSignals = new ArrayList<>();
             logger.info("no help signal found.");
         }
-        return SignalList.builder().help_signals(helpSignals).build();
+        return SignalList.builder()
+                .helpSignals(helpSignals)
+                .build();
     }
 
     public HelpSignal getHelpSignal(Integer help_id, String x_geometry, String y_geometry) {

@@ -19,7 +19,7 @@
 </header>
 
 <div class="registration_form">
-    <form th:action="@{/v1/default/user/register/{token}(token=${registerUserRequest.token})}" method="post" th:object="${registerUserRequest}" class="col s12">
+    <form th:action="@{/v1/user/register/{token}(token=${token})}" method="post" th:object="${registerUserRequest}" class="col s12">
         <div class="input-field col s6">
             <input th:field="*{name}" id="name" type="text" class="validate" >
             <label for="name">name</label>

@@ -188,12 +188,11 @@ public class UserService {
         return historyList;
     }
 
-    public MyProfile getMyProfile(String user_id, String token) {
+    public MyProfile getMyProfile(String user_id) {
         List<MyHandicap> handicap_list = getMyHandicapList(user_id);
         MyVolunteerSummary mySummary = userMapper.getMyVolunteerSummary(user_id);
 
         MyProfile myProfile = MyProfile.builder()
-                .token(token)
                 .volunteer_summary(mySummary)
                 .handicap_list(handicap_list)
                 .build();
