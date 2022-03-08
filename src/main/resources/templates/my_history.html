@@ -15,12 +15,12 @@
 <header>
     <nav>
         <div class="nav-wrapper">
-            <a th:href="@{/v1/user/mypage/{token}(token=${token})}" method="get" class="brand-logo">micro-volunteer</a>
+            <a th:href="@{/v1/user/mypage}" method="get" class="brand-logo">micro-volunteer</a>
             <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
             <ul class="right hide-on-med-and-down">
                 <li><a href="#">checkin!</a></li>
                 <li><a href="#">Help!</a></li>
-                <li><a th:href="@{/v1/user/thanks_list/{token}(token=${token})}" method="post">Thanks</a></li>
+                <li><a th:href="@{/v1/user/thanks_list}" method="post">Thanks</a></li>
                 <li><a href="#">history</a></li>
             </ul>
         </div>
@@ -28,7 +28,7 @@
     <ul class="sidenav" id="mobile-demo">
         <li><a href="#">checkin!</a></li>
         <li><a href="#">Help!</a></li>
-        <li><a th:href="@{/v1/user/thanks_list/{token}(token=${token})}" method="post">Thanks</a></li>
+        <li><a th:href="@{/v1/user/thanks_list}" method="post">Thanks</a></li>
         <li><a href="#">history</a></li>
     </ul>
 </header>
