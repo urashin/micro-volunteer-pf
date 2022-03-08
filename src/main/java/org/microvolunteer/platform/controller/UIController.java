@@ -15,6 +15,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 @CrossOrigin
@@ -62,8 +64,22 @@ public class UIController {
     }
 
     @GetMapping("/user/login")
-    public String login(Model model) {
+    public String login(@CookieValue(value="_token", required=false) String token, Model model) {
         logger.info("login");
+        if (token != null) {
+            String user_id = "";
+            try {
+                user_id = tokenService.getUserId(token);
+            } catch (Exception e) {
+                return "abuser";
+            }
+            MyProfile myProfile = userService.getMyProfile(user_id);
+            model.addAttribute(myProfile);
+            HelpRequest helpRequest = new HelpRequest();
+            model.addAttribute(helpRequest);
+            model.addAttribute("token", token);
+            return "my_profile";
+        }
         model.addAttribute(new LoginRequest());
         return "login_form";
     }
@@ -73,10 +89,13 @@ public class UIController {
      * @return
      */
     @PostMapping("/user/mypage")
-    public String default_login(LoginRequest loginRequest, Model model){
+    public String default_login(HttpServletResponse response, @CookieValue(value="_token", required=false) String token, LoginRequest loginRequest, Model model){
         logger.info("ログインAPI");
         String user_id = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
-        String token = tokenService.getTokenByUserId(user_id);
+        if (token == null) {
+            token = tokenService.getTokenByUserId(user_id);
+            response.addCookie(new Cookie("_token",token));
+        }
 
         MyProfile myProfile = userService.getMyProfile(user_id);
         model.addAttribute(myProfile);
