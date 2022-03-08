@@ -15,6 +15,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 @CrossOrigin
@@ -57,13 +59,25 @@ public class UIController {
 
         // 4) modelに変数を設定
         model.addAttribute(registerUserRequest);
-        model.addAttribute("token", token);
         return "user_registration";
     }
 
     @GetMapping("/user/login")
-    public String login(Model model) {
+    public String login(@CookieValue(value="_token", required=false) String token, Model model) {
         logger.info("login");
+        if (token != null) {
+            String user_id = "";
+            try {
+                user_id = tokenService.getUserId(token);
+            } catch (Exception e) {
+                return "abuser";
+            }
+            MyProfile myProfile = userService.getMyProfile(user_id);
+            model.addAttribute(myProfile);
+            HelpRequest helpRequest = new HelpRequest();
+            model.addAttribute(helpRequest);
+            return "my_profile";
+        }
         model.addAttribute(new LoginRequest());
         return "login_form";
     }
@@ -73,16 +87,20 @@ public class UIController {
      * @return
      */
     @PostMapping("/user/mypage")
-    public String default_login(LoginRequest loginRequest, Model model){
+    public String default_login(HttpServletResponse response, @CookieValue(value="_token", required=false) String token, LoginRequest loginRequest, Model model){
         logger.info("ログインAPI");
         String user_id = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
-        String token = tokenService.getTokenByUserId(user_id);
+        if (token == null) {
+            token = tokenService.getTokenByUserId(user_id);
+            Cookie cookie = new Cookie("_token",token);
+            cookie.setPath("/");
+            response.addCookie(cookie);
+        }
 
         MyProfile myProfile = userService.getMyProfile(user_id);
         model.addAttribute(myProfile);
         HelpRequest helpRequest = new HelpRequest();
         model.addAttribute(helpRequest);
-        model.addAttribute("token", token);
         return "my_profile";
     }
 
@@ -90,8 +108,8 @@ public class UIController {
      * @param token
      * @return
      */
-    @GetMapping("/user/mypage/{token}")
-    public String mypage(@PathVariable String token, Model model){
+    @GetMapping("/user/mypage")
+    public String mypage(@CookieValue(value="_token", required=false) String token, Model model){
         logger.info("mypage API");
         String user_id = "";
         try {
@@ -105,12 +123,11 @@ public class UIController {
         model.addAttribute(myProfile);
         HelpRequest helpRequest = new HelpRequest();
         model.addAttribute(helpRequest);
-        model.addAttribute("token", token);
         return "my_profile";
     }
 
-    @GetMapping("/user/handicap/register/{token}")
-    public String add_handicap(@PathVariable String token, Model model){
+    @GetMapping("/user/handicap/register")
+    public String add_handicap(@CookieValue(value="_token", required=false) String token, Model model){
         logger.info("add handicap API");
         try {
             // tokenからuser_idを取得
@@ -123,12 +140,11 @@ public class UIController {
                 .token(token)
                 .build();
         model.addAttribute(handicapRegisterRequest);
-        model.addAttribute("token", token);
         return "handicap_form";
     }
 
-    @PostMapping("/user/handicap/register/{token}")
-    public String default_handicap_register(@PathVariable String token, HandicapRegisterRequest registerRequest, Model model){
+    @PostMapping("/user/handicap/register")
+    public String default_handicap_register(@CookieValue(value="_token", required=false) String token, HandicapRegisterRequest registerRequest, Model model){
         logger.info("handicap register API");
         String user_id = tokenService.getUserId(registerRequest.getToken());
         userService.registerHandicappedInfo(user_id,registerRequest);
@@ -136,7 +152,6 @@ public class UIController {
         model.addAttribute(myProfile);
         HelpRequest helpRequest = new HelpRequest();
         model.addAttribute(helpRequest);
-        model.addAttribute("token", token);
         return "my_profile";
     }
 
@@ -144,8 +159,8 @@ public class UIController {
        <a th:href="@{/v1/matching/listen/{token}(token=${token})}" class="secondary-content"><i class="material-icons">hearing</i></a>
        <a th:href="@{/v1/matching/checkin/{token}(token=${token})}" class="secondary-content"><i class="material-icons">location_on</i></a>
      */
-    @GetMapping("/matching/listen/{token}")
-    public String default_listen(@PathVariable String token, Model model){
+    @GetMapping("/matching/listen")
+    public String default_listen(@CookieValue(value="_token", required=false) String token, Model model){
         logger.info("listen API");
         String user_id = tokenService.getUserId(token);
         // listen_listをしゅとくする
@@ -153,12 +168,11 @@ public class UIController {
                 .token(token)
                 .build();
         model.addAttribute(listenRequest);
-        model.addAttribute("token", token);
         return "listen";
     }
 
-    @PostMapping("/user/register/{token}")
-    public String default_register(@PathVariable String token, RegisterUserRequest registerUserRequest,Model model){
+    @PostMapping("/user/register")
+    public String default_register(@CookieValue(value="_token", required=false) String token, RegisterUserRequest registerUserRequest,Model model){
         logger.info("default register API");
         // tokenからuser_idを取得
         String user_id = tokenService.getUserId(token);
@@ -188,19 +202,18 @@ public class UIController {
         return "Accepted";
     }
 
-    @GetMapping("/user/history/{token}")
-    public String volunteer_history(@PathVariable String token, Model model) {
+    @GetMapping("/user/history")
+    public String volunteer_history(@CookieValue(value="_token", required=false) String token, Model model) {
         logger.info("history");
         // tokenからuser_idを取得
         String volunteer_id = tokenService.getUserId(token);
         List<MyActivity> history = userService.getMyActivities(volunteer_id, 10);
         model.addAttribute("history", history);
-        model.addAttribute("token", token);
         return "my_history";
     }
 
-    @GetMapping("/user/help/select/{token}/{handicap_id}")
-    public String default_help_select(@PathVariable String token, @PathVariable Integer handicap_id, Model model) {
+    @GetMapping("/user/help/select/{handicap_id}")
+    public String default_help_select(@CookieValue(value="_token", required=false) String token, @PathVariable Integer handicap_id, Model model) {
         logger.info("help_select api");
         try {
             tokenService.getUserId(token);
@@ -214,7 +227,6 @@ public class UIController {
         HelpRequest helpRequest = new HelpRequest();
         helpRequest.setToken(token);
         model.addAttribute(helpRequest);
-        model.addAttribute("token", token);
         return "help_call";
     }
 
@@ -235,7 +247,6 @@ public class UIController {
         model.addAttribute(myHandicap);
         CancelRequest cancelRequest = new CancelRequest();
         model.addAttribute(cancelRequest);
-        model.addAttribute("token", token);
         return "help_wait";
     }
 
@@ -254,7 +265,6 @@ public class UIController {
         model.addAttribute(myProfile);
         HelpRequest helpRequest = new HelpRequest();
         model.addAttribute(helpRequest);
-        model.addAttribute("token", token);
         return "my_profile";
     }
 
@@ -268,12 +278,11 @@ public class UIController {
         AcceptRequest acceptRequest = new AcceptRequest();
         model.addAttribute(acceptRequest);
         model.addAttribute(signalList);
-        model.addAttribute("token", token);
         return "listen_signals";
     }
 
-    @GetMapping("/matching/accept/{token}/{help_id}")
-    public String default_accept(@PathVariable String token, @PathVariable Integer help_id, Model model) {
+    @GetMapping("/matching/accept/{help_id}")
+    public String default_accept(@CookieValue(value="_token", required=false) String token, @PathVariable Integer help_id, Model model) {
         logger.info("listen-signals API");
         String user_id = tokenService.getUserId(token);
         Location geo = matchingService.getMyGeometry(user_id);
@@ -282,7 +291,6 @@ public class UIController {
         AcceptRequest acceptRequest = new AcceptRequest();
         model.addAttribute(acceptRequest);
         model.addAttribute(helpSignal);
-        model.addAttribute("token", token);
         return "accept";
     }
 
@@ -297,23 +305,21 @@ public class UIController {
         CancelRequest cancelRequest = new CancelRequest();
         model.addAttribute(cancelRequest);
         model.addAttribute(helpSignal);
-        model.addAttribute("token", acceptRequest.getToken());
         return "rush";
     }
 
-    @GetMapping("/user/thanks_list/{token}")
-    public String default_thanks_list(@PathVariable String token, Model model) {
+    @GetMapping("/user/thanks_list")
+    public String default_thanks_list(@CookieValue(value="_token", required=false) String token, Model model) {
         logger.info("thanks list");
         // tokenからuser_idを取得
         String handicapped_id = tokenService.getUserId(token);
         ThanksList thanksList = userService.getMyThanksList(handicapped_id, 10);
         model.addAttribute(thanksList);
-        model.addAttribute("token", token);
         return "my_thankslist";
     }
 
-    @GetMapping("/user/support_evaluation/{token}/{help_id}")
-    public String getSupportEvaluation(@PathVariable String token, @PathVariable Integer help_id, Model model) {
+    @GetMapping("/user/support_evaluation/{help_id}")
+    public String getSupportEvaluation(@CookieValue(value="_token", required=false) String token, @PathVariable Integer help_id, Model model) {
         logger.info("support evaluation getAPI");
         // tokenからuser_idを取得
         String handicapped_id = tokenService.getUserId(token);
@@ -321,19 +327,17 @@ public class UIController {
                 .help_id(help_id)
                 .build();
         model.addAttribute(request);
-        model.addAttribute("token", token);
         return "support_evaluation";
     }
 
-    @PostMapping("/user/support_evaluation/{token}")
-    public String postSupportEvaluation(@PathVariable String token, SupportEvaluationRequest request, Model model) {
+    @PostMapping("/user/support_evaluation")
+    public String postSupportEvaluation(@CookieValue(value="_token", required=false) String token, SupportEvaluationRequest request, Model model) {
         logger.info("support evaluation postAPI");
         // tokenからuser_idを取得
         String handicapped_id = tokenService.getUserId(token);
         userService.thanks(request.getHelp_id(), handicapped_id, request.getSatisfaction());
         ThanksList thanksList = userService.getMyThanksList(handicapped_id, 10);
         model.addAttribute(thanksList);
-        model.addAttribute("token", token);
         return "my_thankslist";
     }
 }
