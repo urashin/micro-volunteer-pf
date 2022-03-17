@@ -109,7 +109,7 @@ public class UIController {
      * @return
      */
     @GetMapping("/user/mypage")
-    public String mypage(@CookieValue(value="_token", required=false) String token, Model model){
+    public String mypage(@CookieValue(value="_token", required=true) String token, Model model){
         logger.info("mypage API");
         String user_id = "";
         try {
@@ -127,7 +127,7 @@ public class UIController {
     }
 
     @GetMapping("/user/handicap/register")
-    public String add_handicap(@CookieValue(value="_token", required=false) String token, Model model){
+    public String add_handicap(@CookieValue(value="_token", required=true) String token, Model model){
         logger.info("add handicap API");
         try {
             // tokenからuser_idを取得
@@ -144,7 +144,7 @@ public class UIController {
     }
 
     @PostMapping("/user/handicap/register")
-    public String default_handicap_register(@CookieValue(value="_token", required=false) String token, HandicapRegisterRequest registerRequest, Model model){
+    public String default_handicap_register(@CookieValue(value="_token", required=true) String token, HandicapRegisterRequest registerRequest, Model model){
         logger.info("handicap register API");
         String user_id = tokenService.getUserId(registerRequest.getToken());
         userService.registerHandicappedInfo(user_id,registerRequest);
@@ -160,7 +160,7 @@ public class UIController {
        <a th:href="@{/v1/matching/checkin/{token}(token=${token})}" class="secondary-content"><i class="material-icons">location_on</i></a>
      */
     @GetMapping("/matching/listen")
-    public String default_listen(@CookieValue(value="_token", required=false) String token, Model model){
+    public String default_listen(@CookieValue(value="_token", required=true) String token, Model model){
         logger.info("listen API");
         String user_id = tokenService.getUserId(token);
         // listen_listをしゅとくする
@@ -172,7 +172,7 @@ public class UIController {
     }
 
     @PostMapping("/user/register")
-    public String default_register(@CookieValue(value="_token", required=false) String token, RegisterUserRequest registerUserRequest,Model model){
+    public String default_register(@CookieValue(value="_token", required=true) String token, RegisterUserRequest registerUserRequest,Model model){
         logger.info("default register API");
         // tokenからuser_idを取得
         String user_id = tokenService.getUserId(token);
@@ -203,7 +203,7 @@ public class UIController {
     }
 
     @GetMapping("/user/history")
-    public String volunteer_history(@CookieValue(value="_token", required=false) String token, Model model) {
+    public String volunteer_history(@CookieValue(value="_token", required=true) String token, Model model) {
         logger.info("history");
         // tokenからuser_idを取得
         String volunteer_id = tokenService.getUserId(token);
@@ -213,7 +213,7 @@ public class UIController {
     }
 
     @GetMapping("/user/help/select/{handicap_id}")
-    public String default_help_select(@CookieValue(value="_token", required=false) String token, @PathVariable Integer handicap_id, Model model) {
+    public String default_help_select(@CookieValue(value="_token", required=true) String token, @PathVariable Integer handicap_id, Model model) {
         logger.info("help_select api");
         try {
             tokenService.getUserId(token);
@@ -282,7 +282,7 @@ public class UIController {
     }
 
     @GetMapping("/matching/accept/{help_id}")
-    public String default_accept(@CookieValue(value="_token", required=false) String token, @PathVariable Integer help_id, Model model) {
+    public String default_accept(@CookieValue(value="_token", required=true) String token, @PathVariable Integer help_id, Model model) {
         logger.info("listen-signals API");
         String user_id = tokenService.getUserId(token);
         Location geo = matchingService.getMyGeometry(user_id);
@@ -309,7 +309,7 @@ public class UIController {
     }
 
     @GetMapping("/user/thanks_list")
-    public String default_thanks_list(@CookieValue(value="_token", required=false) String token, Model model) {
+    public String default_thanks_list(@CookieValue(value="_token", required=true) String token, Model model) {
         logger.info("thanks list");
         // tokenからuser_idを取得
         String handicapped_id = tokenService.getUserId(token);
@@ -319,7 +319,7 @@ public class UIController {
     }
 
     @GetMapping("/user/support_evaluation/{help_id}")
-    public String getSupportEvaluation(@CookieValue(value="_token", required=false) String token, @PathVariable Integer help_id, Model model) {
+    public String getSupportEvaluation(@CookieValue(value="_token", required=true) String token, @PathVariable Integer help_id, Model model) {
         logger.info("support evaluation getAPI");
         // tokenからuser_idを取得
         String handicapped_id = tokenService.getUserId(token);
@@ -331,7 +331,7 @@ public class UIController {
     }
 
     @PostMapping("/user/support_evaluation")
-    public String postSupportEvaluation(@CookieValue(value="_token", required=false) String token, SupportEvaluationRequest request, Model model) {
+    public String postSupportEvaluation(@CookieValue(value="_token", required=true) String token, SupportEvaluationRequest request, Model model) {
         logger.info("support evaluation postAPI");
         // tokenからuser_idを取得
         String handicapped_id = tokenService.getUserId(token);
