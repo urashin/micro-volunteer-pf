@@ -29,7 +29,7 @@ dependencies {
 	implementation 'io.springfox:springfox-core:2.8.0'
 	implementation 'javax.xml.bind:jaxb-api'
 	implementation 'mysql:mysql-connector-java:8.0.27'
-	implementation 'com.auth0:java-jwt:3.8.2'
+	implementation 'com.auth0:java-jwt:3.19.0'
 	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:2.2.0'
 	//implementation 'com.google.code.gson:gson:2.7'
 	compileOnly 'org.projectlombok:lombok'

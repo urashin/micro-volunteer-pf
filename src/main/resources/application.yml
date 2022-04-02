@@ -6,5 +6,8 @@ line-message:
   ignore_button_label: "今は無理"
 
 encrypt:
+  jwt:
+    secret: 'MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAPfawZ1qJkJP2j+17nI38xgH9KQPFD1GnMfraazWsbTqlIgHCxcRezJX7G5sJfasitrwkbLv29BB4kvwN+vMro0CAwEAAQ=='
+    expire: 5184000
   volunteerdb:
     key: 'MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAPfawZ1qJkJP2j+17nI38xgH9KQPFD1GnMfraazWsbTqlIgHCxcRezJX7G5sJfasitrwkbLv29BB4kvwN+vMro0CAwEAAQ=='

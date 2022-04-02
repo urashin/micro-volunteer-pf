@@ -1,5 +1,7 @@
 package org.microvolunteer.platform.controller;
 
+import com.auth0.jwt.exceptions.JWTDecodeException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import org.microvolunteer.platform.api.client.LineMessageRestClient;
 import org.microvolunteer.platform.domain.resource.*;
 import org.microvolunteer.platform.domain.resource.request.*;
@@ -66,17 +68,23 @@ public class UIController {
     public String login(@CookieValue(value="_token", required=false) String token, Model model) {
         logger.info("login");
         if (token != null) {
-            String user_id = "";
+            // user_idの取得
+            String user_id;
             try {
+                // tokenからuser_idを取得
                 user_id = tokenService.getUserId(token);
-            } catch (Exception e) {
-                return "abuser";
+                // user_idをベースにした通常処理
+                MyProfile myProfile = userService.getMyProfile(user_id);
+                model.addAttribute(myProfile);
+                HelpRequest helpRequest = new HelpRequest();
+                model.addAttribute(helpRequest);
+                return "my_profile";
+            } catch (JWTDecodeException | TokenExpiredException e) {
+                logger.error("JWT decode failed or expired.");
+                // invalid token, require login
+                //model.addAttribute(new LoginRequest());
+                //return "login_form";
             }
-            MyProfile myProfile = userService.getMyProfile(user_id);
-            model.addAttribute(myProfile);
-            HelpRequest helpRequest = new HelpRequest();
-            model.addAttribute(helpRequest);
-            return "my_profile";
         }
         model.addAttribute(new LoginRequest());
         return "login_form";
@@ -87,15 +95,17 @@ public class UIController {
      * @return
      */
     @PostMapping("/user/mypage")
-    public String default_login(HttpServletResponse response, @CookieValue(value="_token", required=false) String token, LoginRequest loginRequest, Model model){
+    public String default_login(HttpServletResponse response, LoginRequest loginRequest, Model model){
         logger.info("ログインAPI");
         String user_id = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
-        if (token == null) {
-            token = tokenService.getTokenByUserId(user_id);
-            Cookie cookie = new Cookie("_token",token);
-            cookie.setPath("/");
-            response.addCookie(cookie);
+        if (user_id == null) {
+            model.addAttribute("loginRequest", new LoginRequest());
+            return "login_form";
         }
+        String token = tokenService.getTokenByUserId(user_id);
+        Cookie cookie = new Cookie("_token",token);
+        cookie.setPath("/");
+        response.addCookie(cookie);
 
         MyProfile myProfile = userService.getMyProfile(user_id);
         model.addAttribute(myProfile);
@@ -109,14 +119,16 @@ public class UIController {
      * @return
      */
     @GetMapping("/user/mypage")
-    public String mypage(@CookieValue(value="_token", required=false) String token, Model model){
+    public String mypage(@CookieValue(value="_token", required=true) String token, Model model){
         logger.info("mypage API");
         String user_id = "";
         try {
             // tokenからuser_idを取得
             user_id = tokenService.getUserId(token);
-        } catch (Exception e) {
-            return "abuser";
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            // invalid token, require login
+            model.addAttribute(new LoginRequest());
+            return "login_form";
         }
 
         MyProfile myProfile = userService.getMyProfile(user_id);
@@ -127,13 +139,15 @@ public class UIController {
     }
 
     @GetMapping("/user/handicap/register")
-    public String add_handicap(@CookieValue(value="_token", required=false) String token, Model model){
+    public String add_handicap(@CookieValue(value="_token", required=true) String token, Model model){
         logger.info("add handicap API");
         try {
             // tokenからuser_idを取得
             tokenService.getUserId(token);
-        } catch (Exception e) {
-            return "abuser";
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            // invalid token, require login
+            model.addAttribute(new LoginRequest());
+            return "login_form";
         }
 
         HandicapRegisterRequest handicapRegisterRequest = HandicapRegisterRequest.builder()
@@ -144,9 +158,17 @@ public class UIController {
     }
 
     @PostMapping("/user/handicap/register")
-    public String default_handicap_register(@CookieValue(value="_token", required=false) String token, HandicapRegisterRequest registerRequest, Model model){
+    public String default_handicap_register(@CookieValue(value="_token", required=true) String token, HandicapRegisterRequest registerRequest, Model model){
         logger.info("handicap register API");
-        String user_id = tokenService.getUserId(registerRequest.getToken());
+        String user_id;
+        try {
+            // tokenからuser_idを取得
+            user_id = tokenService.getUserId(token);
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            // invalid token, require login
+            model.addAttribute(new LoginRequest());
+            return "login_form";
+        }
         userService.registerHandicappedInfo(user_id,registerRequest);
         MyProfile myProfile = userService.getMyProfile(user_id);
         model.addAttribute(myProfile);
@@ -155,14 +177,17 @@ public class UIController {
         return "my_profile";
     }
 
-    /*
-       <a th:href="@{/v1/matching/listen/{token}(token=${token})}" class="secondary-content"><i class="material-icons">hearing</i></a>
-       <a th:href="@{/v1/matching/checkin/{token}(token=${token})}" class="secondary-content"><i class="material-icons">location_on</i></a>
-     */
     @GetMapping("/matching/listen")
-    public String default_listen(@CookieValue(value="_token", required=false) String token, Model model){
+    public String default_listen(@CookieValue(value="_token", required=true) String token, Model model){
         logger.info("listen API");
-        String user_id = tokenService.getUserId(token);
+        try {
+            // tokenからuser_idを取得
+            String user_id = tokenService.getUserId(token);
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            // invalid token, require login
+            model.addAttribute(new LoginRequest());
+            return "login_form";
+        }
         // listen_listをしゅとくする
         ListenRequest listenRequest = ListenRequest.builder()
                 .token(token)
@@ -172,10 +197,18 @@ public class UIController {
     }
 
     @PostMapping("/user/register")
-    public String default_register(@CookieValue(value="_token", required=false) String token, RegisterUserRequest registerUserRequest,Model model){
+    public String default_register(@CookieValue(value="_token", required=true) String token, RegisterUserRequest registerUserRequest,Model model){
         logger.info("default register API");
         // tokenからuser_idを取得
-        String user_id = tokenService.getUserId(token);
+        String user_id;
+        try {
+            // tokenからuser_idを取得
+            user_id = tokenService.getUserId(token);
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            // invalid token, require login
+            model.addAttribute(new LoginRequest());
+            return "login_form";
+        }
         userService.registerUserInfo(
                 user_id,
                 registerUserRequest.getName(),
@@ -203,38 +236,53 @@ public class UIController {
     }
 
     @GetMapping("/user/history")
-    public String volunteer_history(@CookieValue(value="_token", required=false) String token, Model model) {
+    public String volunteer_history(@CookieValue(value="_token", required=true) String token, Model model) {
         logger.info("history");
-        // tokenからuser_idを取得
-        String volunteer_id = tokenService.getUserId(token);
+        String volunteer_id;
+        try {
+            // tokenからuser_idを取得
+            volunteer_id = tokenService.getUserId(token);
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            // invalid token, require login
+            model.addAttribute(new LoginRequest());
+            return "login_form";
+        }
         List<MyActivity> history = userService.getMyActivities(volunteer_id, 10);
         model.addAttribute("history", history);
         return "my_history";
     }
 
     @GetMapping("/user/help/select/{handicap_id}")
-    public String default_help_select(@CookieValue(value="_token", required=false) String token, @PathVariable Integer handicap_id, Model model) {
+    public String default_help_select(@CookieValue(value="_token", required=true) String token, @PathVariable Integer handicap_id, Model model) {
         logger.info("help_select api");
         try {
+            // tokenからuser_idを取得
             tokenService.getUserId(token);
-        } catch (Exception e) {
-            logger.info("abuser");
-            return "abuser";
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            // invalid token, require login
+            model.addAttribute(new LoginRequest());
+            return "login_form";
         }
         MyHandicap myHandicap = userService.getMyHandicap(handicap_id);
 
         model.addAttribute(myHandicap);
         HelpRequest helpRequest = new HelpRequest();
-        helpRequest.setToken(token);
         model.addAttribute(helpRequest);
         return "help_call";
     }
 
     @PostMapping("/user/help/call")
-    public String default_help_call(HelpRequest helpRequest, Model model) {
+    public String default_help_call(@CookieValue(value="_token", required=true) String token, HelpRequest helpRequest, Model model) {
         logger.info("help call API");
-        String token = helpRequest.getToken();
-        String user_id = tokenService.getUserId(token);
+        String user_id;
+        try {
+            // tokenからuser_idを取得
+            user_id = tokenService.getUserId(token);
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            // invalid token, require login
+            model.addAttribute(new LoginRequest());
+            return "login_form";
+        }
         HandicapInfo handicapInfo = userService.getHandicappedInfo(helpRequest.getHandicapinfo_id());
         try {
             matchingService.help(user_id, helpRequest, handicapInfo);
@@ -251,10 +299,17 @@ public class UIController {
     }
 
     @PostMapping("/user/help/cancel")
-    public String default_help_cancel(CancelRequest cancelRequest, Model model) {
+    public String default_help_cancel(@CookieValue(value="_token", required=true) String token, CancelRequest cancelRequest, Model model) {
         logger.info("help cancel API");
-        String token = cancelRequest.getToken();
-        String user_id = tokenService.getUserId(token);
+        String user_id;
+        try {
+            // tokenからuser_idを取得
+            user_id = tokenService.getUserId(token);
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            // invalid token, require login
+            model.addAttribute(new LoginRequest());
+            return "login_form";
+        }
         try {
             matchingService.help_cancel(user_id);
         } catch (Exception e) {
@@ -269,10 +324,17 @@ public class UIController {
     }
 
     @PostMapping("/matching/listen-signals")
-    public String default_listen_signals(ListenRequest listenRequest, Model model) {
+    public String default_listen_signals(@CookieValue(value="_token", required=true) String token, ListenRequest listenRequest, Model model) {
         logger.info("listen-signals API");
-        String token = listenRequest.getToken();
-        String user_id = tokenService.getUserId(token);
+        String user_id;
+        try {
+            // tokenからuser_idを取得
+            user_id = tokenService.getUserId(token);
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            // invalid token, require login
+            model.addAttribute(new LoginRequest());
+            return "login_form";
+        }
         SignalList signalList = matchingService.getHelpSignals(user_id, listenRequest.getX_geometry(), listenRequest.getY_geometry());
 
         AcceptRequest acceptRequest = new AcceptRequest();
@@ -282,9 +344,18 @@ public class UIController {
     }
 
     @GetMapping("/matching/accept/{help_id}")
-    public String default_accept(@CookieValue(value="_token", required=false) String token, @PathVariable Integer help_id, Model model) {
+    public String default_accept(@CookieValue(value="_token", required=true) String token, @PathVariable Integer help_id, Model model) {
         logger.info("listen-signals API");
-        String user_id = tokenService.getUserId(token);
+        String user_id;
+        try {
+            // tokenからuser_idを取得
+            user_id = tokenService.getUserId(token);
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            // invalid token, require login
+            model.addAttribute(new LoginRequest());
+            return "login_form";
+        }
+
         Location geo = matchingService.getMyGeometry(user_id);
         HelpSignal helpSignal = matchingService.getHelpSignal(help_id,geo.getX_geometry(), geo.getY_geometry());
 
@@ -295,9 +366,17 @@ public class UIController {
     }
 
     @PostMapping("/matching/accept")
-    public String default_accept_rush(AcceptRequest acceptRequest, Model model) {
+    public String default_accept_rush(@CookieValue(value="_token", required=true) String token, AcceptRequest acceptRequest, Model model) {
         logger.info("accept API");
-        String user_id = tokenService.getUserId(acceptRequest.getToken());
+        String user_id;
+        try {
+            // tokenからuser_idを取得
+            user_id = tokenService.getUserId(token);
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            // invalid token, require login
+            model.addAttribute(new LoginRequest());
+            return "login_form";
+        }
         Location geo = matchingService.getMyGeometry(user_id);
         matchingService.accept(acceptRequest.getHelp_id(),user_id);
         HelpSignal helpSignal = matchingService.getHelpSignal(acceptRequest.getHelp_id(),geo.getX_geometry(), geo.getY_geometry());
@@ -309,20 +388,38 @@ public class UIController {
     }
 
     @GetMapping("/user/thanks_list")
-    public String default_thanks_list(@CookieValue(value="_token", required=false) String token, Model model) {
+    public String default_thanks_list(@CookieValue(value="_token", required=true) String token, Model model) {
         logger.info("thanks list");
         // tokenからuser_idを取得
-        String handicapped_id = tokenService.getUserId(token);
+        String handicapped_id;
+        try {
+            // tokenからuser_idを取得
+            handicapped_id = tokenService.getUserId(token);
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            // invalid token, require login
+            model.addAttribute(new LoginRequest());
+            return "login_form";
+        }
+
         ThanksList thanksList = userService.getMyThanksList(handicapped_id, 10);
         model.addAttribute(thanksList);
         return "my_thankslist";
     }
 
     @GetMapping("/user/support_evaluation/{help_id}")
-    public String getSupportEvaluation(@CookieValue(value="_token", required=false) String token, @PathVariable Integer help_id, Model model) {
+    public String getSupportEvaluation(@CookieValue(value="_token", required=true) String token, @PathVariable Integer help_id, Model model) {
         logger.info("support evaluation getAPI");
         // tokenからuser_idを取得
-        String handicapped_id = tokenService.getUserId(token);
+        String handicapped_id;
+        try {
+            // tokenからuser_idを取得
+            handicapped_id = tokenService.getUserId(token);
+            // handicapped_idのhelp_idであるかどうかを確認
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            // invalid token, require login
+            model.addAttribute(new LoginRequest());
+            return "login_form";
+        }
         SupportEvaluationRequest request = SupportEvaluationRequest.builder()
                 .help_id(help_id)
                 .build();
@@ -331,10 +428,18 @@ public class UIController {
     }
 
     @PostMapping("/user/support_evaluation")
-    public String postSupportEvaluation(@CookieValue(value="_token", required=false) String token, SupportEvaluationRequest request, Model model) {
+    public String postSupportEvaluation(@CookieValue(value="_token", required=true) String token, SupportEvaluationRequest request, Model model) {
         logger.info("support evaluation postAPI");
         // tokenからuser_idを取得
-        String handicapped_id = tokenService.getUserId(token);
+        String handicapped_id;
+        try {
+            // tokenからuser_idを取得
+            handicapped_id = tokenService.getUserId(token);
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            // invalid token, require login
+            model.addAttribute(new LoginRequest());
+            return "login_form";
+        }
         userService.thanks(request.getHelp_id(), handicapped_id, request.getSatisfaction());
         ThanksList thanksList = userService.getMyThanksList(handicapped_id, 10);
         model.addAttribute(thanksList);
