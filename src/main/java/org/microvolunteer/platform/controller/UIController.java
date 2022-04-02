@@ -69,14 +69,21 @@ public class UIController {
         logger.info("login");
         if (token != null) {
             // user_idの取得
-            String user_id = tokenService.getUserId(token);
-            if (user_id != null) {
+            String user_id;
+            try {
+                // tokenからuser_idを取得
+                user_id = tokenService.getUserId(token);
                 // user_idをベースにした通常処理
                 MyProfile myProfile = userService.getMyProfile(user_id);
                 model.addAttribute(myProfile);
                 HelpRequest helpRequest = new HelpRequest();
                 model.addAttribute(helpRequest);
                 return "my_profile";
+            } catch (JWTDecodeException | TokenExpiredException e) {
+                logger.error("JWT decode failed or expired.");
+                // invalid token, require login
+                //model.addAttribute(new LoginRequest());
+                //return "login_form";
             }
         }
         model.addAttribute(new LoginRequest());
