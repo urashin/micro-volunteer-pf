@@ -1,9 +1,11 @@
 package org.microvolunteer.platform.service;
 
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTDecodeException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import org.microvolunteer.platform.repository.dao.mapper.SnsRegisterMapper;
@@ -14,9 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Calendar;
 import java.util.Date;
-import java.util.UUID;
 
 @Service
 public class TokenService {
@@ -31,47 +31,52 @@ public class TokenService {
     @Value("${encrypt.jwt.secret}")
     private String jwt_secret;
 
+    @Value("${encrypt.jwt.expire}")
+    private Integer jwt_expire;
+
     public String createToken(String user_id) {
         String token = null;
         try {
-            Date date = new Date();
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(date);
-            calendar.add(Calendar.DATE, 60); // 有効期限2ヶ月
-            Date expire = calendar.getTime();
+            Date expDate = new Date();
+            expDate.setTime(expDate.getTime() + jwt_expire);
 
             Algorithm algorithm = Algorithm.HMAC256(jwt_secret);
             token = JWT.create()
                     .withIssuer("auth0")
-                    .withExpiresAt(expire)
+                    .withExpiresAt(expDate)
                     .withClaim("user_id",user_id)
                     .sign(algorithm);
         } catch (JWTCreationException exception){
             logger.error("error : " + exception.getMessage());
-            //無効なトークンの場合
+            return null;
+            //無効なトークンの場合:メッセージは変更する。
         }
-        /*
-        UUID token = UUID.randomUUID();
-        tokenMapper.registerToken(
-                token.toString()
-                , user_id
-        );
-
-         */
         return token;
     }
 
     public String getUserId(String token) {
         String user_id = null;
         try {
-            DecodedJWT jwt = JWT.decode(token);
+            // 期限&改竄チェック
+            Algorithm algorithm = Algorithm.HMAC256(jwt_secret);
+            JWTVerifier verifier = JWT.require(algorithm)
+                    .withIssuer("auth0")
+                    .build();
+            DecodedJWT jwt = verifier.verify(token);
+            // decodeしてuser_idを取得する
             Claim claim = jwt.getClaim("user_id");
             user_id = claim.asString();
         } catch (JWTDecodeException exception){
+            logger.error("Invalid token");
+            throw exception;
             //Invalid token
+            //return null;
+        } catch (TokenExpiredException exception) {
+            logger.error("Token expired");
+            throw exception;
+            //return null;
         }
         return user_id;
-//        return tokenMapper.getUserId(token);
     }
 
     public String getTokenByUserId(String user_id) {
