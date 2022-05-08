@@ -56,7 +56,7 @@ public class Controller {
      * 2) Usersテーブルにuser_id(create), email(default), password(default), status(init)をinsertする
      *
      */
-    @PostMapping("/user/register/{sns_id}")
+    @GetMapping("/user/register/{sns_id}")
     @ApiOperation(value="新規ユーザー登録(1) for LINE user", notes="LINEのuser idを用いた新規ユーザーユーザー登録")
     public SnsRegisterResponse snsRegister(@PathVariable String sns_id){
         logger.info("sns register API");

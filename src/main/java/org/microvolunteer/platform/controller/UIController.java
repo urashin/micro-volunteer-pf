@@ -5,6 +5,8 @@ import com.auth0.jwt.exceptions.TokenExpiredException;
 import org.microvolunteer.platform.api.client.LineMessageRestClient;
 import org.microvolunteer.platform.domain.resource.*;
 import org.microvolunteer.platform.domain.resource.request.*;
+import org.microvolunteer.platform.domain.resource.response.SnsRegisterResponse;
+import org.microvolunteer.platform.domain.resource.snsmessage.LineLocationMessageRequest;
 import org.microvolunteer.platform.repository.dao.mapper.SnsRegisterMapper;
 import org.microvolunteer.platform.service.MatchingService;
 import org.microvolunteer.platform.service.SnsIdRegisterService;
@@ -13,9 +15,16 @@ import org.microvolunteer.platform.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.RequestEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
@@ -45,21 +54,30 @@ public class UIController {
     @Autowired
     private SnsIdRegisterService snsIdRegisterService;
 
+    @Value("${backend-api.uri}")
+    private String api_uri;
+
     @GetMapping("/user/register/{sns_id}")
     public String register(@PathVariable String sns_id, Model model) {
+        String api_url = api_uri + "/v1/api/user/register/" + sns_id;
         logger.info("sns register API");
+        String token = "";
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<SnsRegisterResponse> response = restTemplate
+                    .exchange(api_url, HttpMethod.GET, null, SnsRegisterResponse.class);
+            SnsRegisterResponse body = response.getBody();
+            token = body.getToken();
+            if (token.isEmpty()) throw new RestClientException("get token error.");
+        } catch (RestClientException e) {
+            logger.info("RestClient error : {}", e.toString());
+            return "error"; // error page遷移
+        }
+        
         RegisterUserRequest registerUserRequest = new RegisterUserRequest();
-        // 1) user_id を新規発行（個々の情報はパスワード設定など、個別に設定）
-        String user_id = userService.createUser();
-
-        // 2) session 管理のトークンを発行
-        String token = tokenService.createToken(user_id);
         registerUserRequest.setToken(token);
 
-        // 3) SnsId tableにuser_id&sns_idのペアで登録し、紐付け完了
-        snsIdRegisterService.registerSnsId(sns_id,user_id, 1);
-
-        // 4) modelに変数を設定
+        // modelに変数を設定
         model.addAttribute(registerUserRequest);
         return "user_registration";
     }
