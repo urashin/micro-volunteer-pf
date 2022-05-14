@@ -137,9 +137,10 @@ public class Controller {
     @GetMapping("/user/myprofile")
     @ResponseBody
     @ApiOperation(value="My profile取得(共通)", notes="自分のprofile情報（ボランティア情報の要約と、登録してあるHelp情報一覧の取得")
-    public MyProfileResponse getMyProfile(@RequestBody SimpleRequest request){
+    public MyProfileResponse getMyProfile(@RequestHeader(value="Authorization",required=true) String auth){
         logger.info("getMyProfile API");
-        String user_id = tokenService.getUserId(request.getToken());
+        String token = tokenService.getTokenFromAuth(auth);
+        String user_id = tokenService.getUserId(token);
         MyProfile myProfile = userService.getMyProfile(user_id);
         return MyProfileResponse.builder()
                 .volunteer_summary(myProfile.getVolunteer_summary())

@@ -5,6 +5,7 @@ import com.auth0.jwt.exceptions.TokenExpiredException;
 import org.microvolunteer.platform.api.client.LineMessageRestClient;
 import org.microvolunteer.platform.domain.resource.*;
 import org.microvolunteer.platform.domain.resource.request.*;
+import org.microvolunteer.platform.domain.resource.response.MyProfileResponse;
 import org.microvolunteer.platform.domain.resource.response.SnsRegisterResponse;
 import org.microvolunteer.platform.domain.resource.snsmessage.LineLocationMessageRequest;
 import org.microvolunteer.platform.repository.dao.mapper.SnsRegisterMapper;
@@ -16,10 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -73,7 +71,7 @@ public class UIController {
             logger.info("RestClient error : {}", e.toString());
             return "error"; // error page遷移
         }
-        
+
         RegisterUserRequest registerUserRequest = new RegisterUserRequest();
         registerUserRequest.setToken(token);
 
@@ -84,24 +82,35 @@ public class UIController {
 
     @GetMapping("/user/login")
     public String login(@CookieValue(value="_token", required=false) String token, Model model) {
+        String api_url = api_uri + "/v1/api/user/myprofile";
         logger.info("login");
         if (token != null) {
-            // user_idの取得
-            String user_id;
             try {
-                // tokenからuser_idを取得
-                user_id = tokenService.getUserId(token);
-                // user_idをベースにした通常処理
-                MyProfile myProfile = userService.getMyProfile(user_id);
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                headers.add("Authorization", "Bearer " + token);
+                HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+                RestTemplate restTemplate = new RestTemplate();
+                ResponseEntity<MyProfileResponse> response = restTemplate
+                        .exchange(api_url, HttpMethod.GET, requestEntity, MyProfileResponse.class);
+                MyProfileResponse body = response.getBody();
+                MyProfile myProfile = MyProfile.builder()
+                        .handicap_list(body.getHandicap_list())
+                        .volunteer_summary(body.getVolunteer_summary())
+                        .build();
                 model.addAttribute(myProfile);
                 HelpRequest helpRequest = new HelpRequest();
                 model.addAttribute(helpRequest);
                 return "my_profile";
+            } catch (RestClientException e) {
+                logger.info("RestClient error : {}", e.toString());
+                return "error"; // error page遷移
             } catch (JWTDecodeException | TokenExpiredException e) {
                 logger.error("JWT decode failed or expired.");
-                // invalid token, require login
-                //model.addAttribute(new LoginRequest());
-                //return "login_form";
+                return "error"; // error page遷移
+            } catch (Exception e) {
+                logger.info("error : {}", e.toString());
+                return "error"; // error page遷移
             }
         }
         model.addAttribute(new LoginRequest());
@@ -116,11 +125,14 @@ public class UIController {
     public String default_login(HttpServletResponse response, LoginRequest loginRequest, Model model){
         logger.info("ログインAPI");
         String user_id = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
+        // api に置き換え
+
         if (user_id == null) {
             model.addAttribute("loginRequest", new LoginRequest());
             return "login_form";
         }
         String token = tokenService.getTokenByUserId(user_id);
+        // api に置き換え
         Cookie cookie = new Cookie("_token",token);
         cookie.setPath("/");
         response.addCookie(cookie);
