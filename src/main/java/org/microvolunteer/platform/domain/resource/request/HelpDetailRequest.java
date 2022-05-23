@@ -8,10 +8,6 @@ import javax.validation.constraints.Size;
 
 @Data
 public class HelpDetailRequest {
-    @NotNull
-    @Size(min=16, max=64)
-    private String token;
-
     @Positive
     private Integer help_id;
 }

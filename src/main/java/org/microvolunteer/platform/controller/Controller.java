@@ -1,6 +1,7 @@
 package org.microvolunteer.platform.controller;
 
-import io.swagger.annotations.Api;
+import com.auth0.jwt.exceptions.JWTDecodeException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.microvolunteer.platform.domain.resource.*;
@@ -39,12 +40,13 @@ public class Controller {
     /**
      * ログインAPI.
      */
-    @PostMapping("/user/login")
+    @GetMapping("/user/login")
     @ResponseBody
     @ApiOperation(value="login", notes="emailとpasswordでログインし、tokenを取得する")
     public LoginResponse app_login(@RequestBody LoginRequest loginRequest){
         logger.info("App ログインAPI");
-        String token = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
+        String user_id = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
+        String token = tokenService.createToken(user_id);
         return LoginResponse.builder().token(token).build();
     }
 
@@ -72,6 +74,22 @@ public class Controller {
         // Usersテーブルにuser_id & statusのみinsertする（他の要素はonetimeurl発行→登録
     }
 
+
+    @GetMapping("/user/tokencheck")
+    @ResponseBody
+    @ApiOperation(value="新規ユーザー登録(2) ユーザー情報設定(共通)", notes="新規ユーザー登録(1)で取得したtokenを用いて名前、email、passwordを設定する")
+    public NormalResponse token_check(
+            @RequestHeader(value="Authorization",required=true) String auth) {
+        logger.info("token check API");
+        try {
+            String user_id = tokenService.getUserId(tokenService.getTokenFromAuth(auth));
+            return NormalResponse.builder().result("OK").build();
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            logger.info("bad token");
+            return NormalResponse.builder().result("NG").build();
+        }
+    }
+
     /**
      * email, password, nameを登録.
      * sns_idもしくはonetimeurlにより、tokenは取得できている状態
@@ -82,16 +100,22 @@ public class Controller {
     @PostMapping("/user/register")
     @ResponseBody
     @ApiOperation(value="新規ユーザー登録(2) ユーザー情報設定(共通)", notes="新規ユーザー登録(1)で取得したtokenを用いて名前、email、passwordを設定する")
-    public UserRegisterResponse app_register(@RequestBody RegisterUserRequest registerUserRequest){
+    public RegisterUserResponse app_register(
+            @RequestHeader(value="Authorization",required=true) String auth,
+            @RequestBody RegisterUserRequest registerUserRequest){
         logger.info("app register API");
-        // tokenからuser_idを取得
-        String user_id = tokenService.getUserId(registerUserRequest.getToken());
-        userService.registerUserInfo(
-                user_id,
-                registerUserRequest.getName(),
-                registerUserRequest.getEmail(),
-                registerUserRequest.getPassword());
-        return UserRegisterResponse.builder().result("OK").build();
+        try {
+            String user_id = tokenService.getUserId(tokenService.getTokenFromAuth(auth));
+            userService.registerUserInfo(
+                    user_id,
+                    registerUserRequest.getName(),
+                    registerUserRequest.getEmail(),
+                    registerUserRequest.getPassword());
+            return RegisterUserResponse.builder().result("OK").build();
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            logger.info("bad token");
+            return RegisterUserResponse.builder().result("NG").build();
+        }
     }
 
 
@@ -104,11 +128,17 @@ public class Controller {
     @PostMapping("/user/handicap/register")
     @ResponseBody
     @ApiOperation(value="Helpボタン追加(障がい者側)", notes="Helpボタンを１つ追加し、Help発信の内容を設定する")
-    public HandicapRegisterResponse handicap_register(@RequestBody HandicapRegisterRequest registerRequest){
+    public HandicapRegisterResponse handicap_register(
+            @RequestHeader(value="Authorization",required=true) String auth,
+            @RequestBody HandicapRegisterRequest registerRequest){
         logger.info("handicap register API");
-        String user_id = tokenService.getUserId(registerRequest.getToken());
-        userService.registerHandicappedInfo(user_id,registerRequest);
-        return HandicapRegisterResponse.builder().result("OK").build();
+        try {
+            String user_id = tokenService.getUserId(tokenService.getTokenFromAuth(auth));
+            userService.registerHandicappedInfo(user_id, registerRequest);
+            return HandicapRegisterResponse.builder().result("OK").build();
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            return HandicapRegisterResponse.builder().result("NG").build();
+        }
     }
 
     /**
@@ -117,21 +147,38 @@ public class Controller {
     @PostMapping("/matching/checkin")
     @ResponseBody
     @ApiOperation(value="チェックイン(共通)", notes="現在地（緯度経度、特定のエリアに入っているかどうか）を登録する")
-    public CheckInResponse checkin(@RequestBody CheckInRequest checkInRequest){
+    public CheckInResponse checkin(
+            @RequestHeader(value="Authorization",required=true) String auth,
+            @RequestBody CheckInRequest checkInRequest){
         logger.info("CheckIn API");
-        String user_id = tokenService.getUserId(checkInRequest.getToken());
-        matchingService.updateMyGeometry(user_id,checkInRequest);
-        return CheckInResponse.builder().result("OK").build();
+        try {
+            String user_id = tokenService.getUserId(tokenService.getTokenFromAuth(auth));
+            matchingService.updateMyGeometry(user_id, checkInRequest);
+            return CheckInResponse.builder().result("OK").build();
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            return CheckInResponse.builder().result("NG").build();
+        }
     }
 
+    /*
+     * checkout
+     */
     @PostMapping("/matching/checkout")
     @ResponseBody
-    @ApiOperation(value="チェックアウト(共通)", notes="チェックイン位置からの離脱を登録する")
-    public CheckInResponse checkout(@RequestBody SimpleRequest simpleRequest){
+    @ApiOperation(value="チェックアウト(共通)", notes="チェックイン位置からの離脱を登録する[未実装]")
+    public CheckInResponse checkout(
+            @RequestHeader(value="Authorization",required=true) String auth) {
         logger.info("CheckIn API");
-        String user_id = tokenService.getUserId(simpleRequest.getToken());
+        try {
+            String user_id = tokenService.getUserId(tokenService.getTokenFromAuth(auth));
 //        matchingService.checkoutMyGeometry(user_id);
-        return CheckInResponse.builder().result("OK").build();
+            throw new Exception("not impremented.");
+            //return CheckInResponse.builder().result("OK").build();
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            return CheckInResponse.builder().result("NG").build();
+        } catch (Exception e) {
+            return CheckInResponse.builder().result("NG").build();
+        }
     }
 
     @GetMapping("/user/myprofile")
@@ -139,13 +186,19 @@ public class Controller {
     @ApiOperation(value="My profile取得(共通)", notes="自分のprofile情報（ボランティア情報の要約と、登録してあるHelp情報一覧の取得")
     public MyProfileResponse getMyProfile(@RequestHeader(value="Authorization",required=true) String auth){
         logger.info("getMyProfile API");
-        String token = tokenService.getTokenFromAuth(auth);
-        String user_id = tokenService.getUserId(token);
-        MyProfile myProfile = userService.getMyProfile(user_id);
-        return MyProfileResponse.builder()
-                .volunteer_summary(myProfile.getVolunteer_summary())
-                .handicap_list(myProfile.getHandicap_list())
-                .build();
+        try {
+            String token = tokenService.getTokenFromAuth(auth);
+            String user_id = tokenService.getUserId(token);
+            MyProfile myProfile = userService.getMyProfile(user_id);
+            return MyProfileResponse.builder()
+                    .volunteer_summary(myProfile.getVolunteer_summary())
+                    .handicap_list(myProfile.getHandicap_list())
+                    .build();
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            return MyProfileResponse.builder()
+                    // ng message
+                    .build();
+        }
     }
 
     /**
@@ -155,13 +208,45 @@ public class Controller {
     @GetMapping("/user/handicaplist")
     @ResponseBody
     @ApiOperation(value="自分のHelp設定状況を取得(障がい者側)", notes="自分が設定しているHelp情報をリストで取得する")
-    public MyHandicapInfoResponse getMyHandicapList(@RequestBody SimpleRequest request){
+    public MyHandicapListResponse getMyHandicapList(
+            @RequestHeader(value="Authorization",required=true) String auth) {
         logger.info("handicaplist API");
-        // 障害者の位置情報を更新
-        String user_id = tokenService.getUserId(request.getToken());
-        // 障害者の障害情報リストを取得
-        List<MyHandicap> handicapInfoList = userService.getMyHandicapList(user_id);
-        return MyHandicapInfoResponse.builder().handicapInfoList(handicapInfoList).build();
+        try {
+            // 障害者の位置情報を更新
+            String user_id = tokenService.getUserId(tokenService.getTokenFromAuth(auth));
+            // 障害者の障害情報リストを取得
+            List<MyHandicap> handicapInfoList = userService.getMyHandicapList(user_id);
+            return MyHandicapListResponse.builder().handicapInfoList(handicapInfoList).build();
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            return MyHandicapListResponse.builder()
+                    // ng message
+                    .build();
+        }
+    }
+
+    /**
+     * ★自分のhandicap情報をhandicap_idにより取得する（障害者側から）
+     */
+    @GetMapping("/user/handicap/{handicap_id}")
+    @ResponseBody
+    @ApiOperation(value="Help発信(障がい者側)", notes="登録済みのHelp情報に関するHelp発信を行う")
+    public MyHandicapResponse getMyHandicap(
+            @RequestHeader(value="Authorization",required=true) String auth,
+            @PathVariable Integer handicap_id){
+        logger.info("myHandicap API");
+        try {
+            // 障害者の位置情報を更新
+            String my_id = tokenService.getUserId(tokenService.getTokenFromAuth(auth));
+            MyHandicap myHandicap = userService.getMyHandicap(my_id, handicap_id);
+            return MyHandicapResponse.builder()
+                    .myHandicap(myHandicap)
+                    .build();
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            logger.error("token error.");
+            return MyHandicapResponse.builder()
+                    // error message
+                    .build();
+        }
     }
 
     /**
@@ -170,27 +255,64 @@ public class Controller {
     @PostMapping("/matching/help")
     @ResponseBody
     @ApiOperation(value="Help発信(障がい者側)", notes="登録済みのHelp情報に関するHelp発信を行う")
-    public HelpResponse help(@RequestBody HelpRequest helpRequest){
+    public HelpResponse help(
+            @RequestHeader(value="Authorization",required=true) String auth,
+            @RequestBody HelpRequest helpRequest){
         logger.info("help API");
-        // 障害者の位置情報を更新
-        String user_id = tokenService.getUserId(helpRequest.getToken());
-        HandicapInfo handicapInfo = userService.getHandicappedInfo(helpRequest.getHandicapinfo_id());
-        matchingService.help(user_id, helpRequest, handicapInfo);
-        return HelpResponse.builder().result("OK").build();
+        try {
+            // 障害者の位置情報を更新
+            String user_id = tokenService.getUserId(tokenService.getTokenFromAuth(auth));
+            HandicapInfo handicapInfo = userService.getHandicappedInfo(helpRequest.getHandicapinfo_id());
+            matchingService.help(user_id, helpRequest, handicapInfo);
+            return HelpResponse.builder().result("OK").build();
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            return HelpResponse.builder().result("NG").build();
+        }
     }
 
     @PostMapping("/matching/accept")
     @ResponseBody
-    @ApiOperation(value="発信されたHelpに応じる(ボランティア側)", notes="近くで発信されているHelpに応じる")
-    public NormalResponse acceptRush_api(@RequestBody AcceptRequest acceptRequest) {
-        logger.info("accept API");
-        String user_id = tokenService.getUserId(acceptRequest.getToken());
-        Location geo = matchingService.getMyGeometry(user_id);
-        matchingService.accept(acceptRequest.getHelp_id(),user_id);
-        //HelpSignal helpSignal = matchingService.getHelpSignal(acceptRequest.getHelp_id(),geo.getX_geometry(), geo.getY_geometry());
-        return NormalResponse.builder()
-                .result("OK")
-                .build();
+    @ApiOperation(value="Helpに応じる(ボランティア側)", notes="近くで発信されている特定のHelpSignalに対応する意思を示す")
+    public NormalResponse acceptRush_api(
+            @RequestHeader(value="Authorization",required=true) String auth,
+            @RequestBody AcceptRequest acceptRequest) {
+        try {
+            logger.info("accept API");
+            String user_id = tokenService.getUserId(tokenService.getTokenFromAuth(auth));
+            // Help発信場所と自分の位置情報から距離を計算するためMyGeometryを取得
+            //Location geo = matchingService.getMyGeometry(user_id);
+            matchingService.accept(acceptRequest.getHelp_id(), user_id);
+            //HelpSignal helpSignal = matchingService.getHelpSignal(acceptRequest.getHelp_id(), geo.getX_geometry(), geo.getY_geometry());
+            return NormalResponse.builder()
+                    .result("OK")
+                    .build();
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            return NormalResponse.builder()
+                    .result("NG")
+                    .build();
+        }
+    }
+
+    @GetMapping("/matching/signal")
+    @ResponseBody
+    @ApiOperation(value="Helpの詳細を取得する(ボランティア側)", notes="近くで発信されている特定のHelpSignalの詳細を取得する")
+    public GetSignalResponse getSignal(
+            @RequestHeader(value="Authorization",required=true) String auth,
+            @RequestBody AcceptRequest acceptRequest) {
+        try {
+            logger.info("accept API");
+            String user_id = tokenService.getUserId(tokenService.getTokenFromAuth(auth));
+            // Help発信場所と自分の位置情報から距離を計算するためMyGeometryを取得
+            Location geo = matchingService.getMyGeometry(user_id);
+            matchingService.accept(acceptRequest.getHelp_id(), user_id);
+            HelpSignal helpSignal = matchingService.getHelpSignal(acceptRequest.getHelp_id(), geo.getX_geometry(), geo.getY_geometry());
+            return GetSignalResponse.builder()
+                    .helpSignal(helpSignal)
+                    .build();
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            return GetSignalResponse.builder()
+                    .build();
+        }
     }
 
     /**
@@ -199,15 +321,22 @@ public class Controller {
     @GetMapping("/user/thanks")
     @ResponseBody
     @ApiOperation(value="自分が受けた支援行為一覧取得(障がい者側)", notes="Thanksを送る対象の支援行為一覧の取得")
-    public ThanksListResponse getThanksList(@RequestBody SimpleRequest request){
+    public ThanksListResponse getThanksList(
+            @RequestHeader(value="Authorization",required=true) String auth) {
         logger.info("get thanks list API: {}");
-        String handicapped_id = tokenService.getUserId(request.getToken());
+        try {
+            String handicapped_id = tokenService.getUserId(tokenService.getTokenFromAuth(auth));
 
-        ThanksList thanksList = userService.getMyThanksList(handicapped_id, 10);
-        return ThanksListResponse.builder()
-                .doneList(thanksList.getDone_list())
-                .sendList(thanksList.getSend_list())
-                .build();
+            ThanksList thanksList = userService.getMyThanksList(handicapped_id, 10);
+            return ThanksListResponse.builder()
+                    .thanksList(thanksList)
+                    .result("OK")
+                    .build();
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            return ThanksListResponse.builder()
+                    .result("NG")
+                    .build();
+        }
     }
 
     /**
@@ -216,14 +345,36 @@ public class Controller {
     @PostMapping("/user/thanks")
     @ResponseBody
     @ApiOperation(value="支援行為に対する評価(障がい者側)", notes="help idで指定した支援行為に対する評価を行う")
-    public NormalResponse thanks(@RequestBody ThanksRequest thanksRequest){
+    public NormalResponse thanks(
+            @RequestHeader(value="Authorization",required=true) String auth,
+            @RequestBody ThanksRequest thanksRequest){
         logger.info("thanks API: {}", thanksRequest.getHelp_id());
-        String handicapped_id = tokenService.getUserId(thanksRequest.getToken());
+        try {
+            String handicapped_id = tokenService.getUserId(tokenService.getTokenFromAuth(auth));
 
-        userService.thanks(thanksRequest.getHelp_id(),handicapped_id,thanksRequest.getEvaluate());
-        return NormalResponse.builder()
-                .result("OK")
-                .build();
+            userService.thanks(thanksRequest.getHelp_id(), handicapped_id, thanksRequest.getEvaluate());
+            return NormalResponse.builder().result("OK").build();
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            return NormalResponse.builder().result("NG").build();
+        }
+    }
+
+    /**
+     * ★thanks（障害者から）
+     */
+    @PostMapping("/matching/cancel")
+    @ResponseBody
+    @ApiOperation(value="Helpのキャンセル(障がい者側)", notes="発信中のHelpをキャンセルする")
+    public NormalResponse helpCancel(
+            @RequestHeader(value="Authorization",required=true) String auth) {
+        logger.info("cancel API: {}");
+        try {
+            String user_id = tokenService.getUserId(tokenService.getTokenFromAuth(auth));
+            matchingService.help_cancel(user_id);
+            return NormalResponse.builder().result("OK").build();
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            return NormalResponse.builder().result("NG").build();
+        }
     }
 
     /**
@@ -232,29 +383,66 @@ public class Controller {
     @GetMapping("/user/history")
     @ResponseBody
     @ApiOperation(value="自分が行った支援履歴の取得(ボランティア側)", notes="自分が行った支援履歴を取得する")
-    public VolunteerHistoryResponse history(@RequestBody SimpleRequest request){
+    public VolunteerHistoryResponse history(
+            @RequestHeader(value="Authorization",required=true) String auth) {
         logger.info("history API");
-        String user_id = tokenService.getUserId(request.getToken());
+        try {
+            String user_id = tokenService.getUserId(tokenService.getTokenFromAuth(auth));
 
-        Integer get_limit = 10;
-        List<VolunteerHistory> volunteerHistory = userService.getMyVolunteerHistory(user_id,get_limit);
-        return VolunteerHistoryResponse.builder()
-                .volunteerHistory(volunteerHistory)
-                .build();
+            Integer get_limit = 10;
+            List<VolunteerHistory> volunteerHistory = userService.getMyVolunteerHistory(user_id, get_limit);
+            return VolunteerHistoryResponse.builder()
+                    .volunteerHistory(volunteerHistory)
+                    .build();
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            return VolunteerHistoryResponse.builder()
+                    // ng message
+                    .build();
+        }
     }
 
-    @PostMapping("/matching/listen-signals")
+    /**
+     * ★ボランティア履歴の取得
+     */
+    @GetMapping("/user/myactivities")
+    @ResponseBody
+    @ApiOperation(value="自分が行った支援履歴の取得(ボランティア側)", notes="自分が行った支援履歴を取得する")
+    public MyActivitiiesResponse myactivities(
+            @RequestHeader(value="Authorization",required=true) String auth) {
+        logger.info("history API");
+        try {
+            Integer get_limit = 10;
+            String volunteer_id = tokenService.getUserId(tokenService.getTokenFromAuth(auth));
+            List<MyActivity> myHistory = userService.getMyActivities(volunteer_id, get_limit);
+            return MyActivitiiesResponse.builder()
+                    .myActivityList(myHistory)
+                    .build();
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            return MyActivitiiesResponse.builder()
+                    // ng message
+                    .build();
+        }
+    }
+
+    @GetMapping("/matching/listen-signals")
     @ResponseBody
     @ApiOperation(value="周囲のHelpを探知(ボランティア側)", notes="自分の周囲で発信されているHelpを探し、リスト形式で取得")
-    public ListenSignalsResponse listenSignals(@RequestBody ListenRequest listenRequest) {
+    public ListenSignalsResponse listenSignals(
+            @RequestHeader(value="Authorization",required=true) String auth,
+            @RequestBody ListenRequest listenRequest) {
         logger.info("listen-signals API");
-        String token = listenRequest.getToken();
-        String user_id = tokenService.getUserId(token);
-        SignalList signalList = matchingService.getHelpSignals(user_id, listenRequest.getX_geometry(), listenRequest.getY_geometry());
+        try {
+            String user_id = tokenService.getUserId(tokenService.getTokenFromAuth(auth));
+            SignalList signalList = matchingService.getHelpSignals(user_id, listenRequest.getX_geometry(), listenRequest.getY_geometry());
 
-        return ListenSignalsResponse.builder()
-                .helpSignals(signalList.getHelpSignals())
-                .build();
+            return ListenSignalsResponse.builder()
+                    .helpSignals(signalList.getHelpSignals())
+                    .build();
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            return ListenSignalsResponse.builder()
+                    // ng message
+                    .build();
+        }
     }
 
     /**
@@ -263,28 +451,40 @@ public class Controller {
     @PostMapping("/admin/area_register")
     @ResponseBody
     @ApiOperation(value="エリア設定(管理者機能)", notes="checkinにより地名を表示するエリアを設定する")
-    public String area_register(@RequestBody CheckinAreaRegisterRequest request){
+    public NormalResponse area_register(
+            @RequestHeader(value="Authorization",required=true) String auth,
+            @RequestBody CheckinAreaRegisterRequest request){
         logger.info("area_register API");
-        String user_id = tokenService.getUserId(request.getToken());
+        try {
+            String user_id = tokenService.getUserId(tokenService.getTokenFromAuth(auth));
 
-        matchingService.registerArea(request,user_id);
-        return "OK";
+            matchingService.registerArea(request, user_id);
+            return NormalResponse.builder().result("OK").build();
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            return NormalResponse.builder().result("NG").build();
+        }
     }
 
     @PostMapping("/admin/add_handicap_type")
     @ResponseBody
     @ApiOperation(value="障がいのタイプを追加(管理者機能)", notes="DBに新しい障がい情報を登録する（アイコン登録は別）")
-    public String add_handicap_type(@RequestBody AddHandicapTypeRequest request){
+    public NormalResponse add_handicap_type(
+            @RequestHeader(value="Authorization",required=true) String auth,
+            @RequestBody AddHandicapTypeRequest request){
         logger.info("add handicap type API");
-        String auth_code = request.getAuth_code();
-        HandicapMaster master = HandicapMaster.builder()
-                .handicap_name(request.getHandicap_name())
-                .comment(request.getComment())
-                .icon_path(request.getIcon_path())
-                .build();
+        try {
+            String auth_code = request.getAuth_code();
+            HandicapMaster master = HandicapMaster.builder()
+                    .handicap_name(request.getHandicap_name())
+                    .comment(request.getComment())
+                    .icon_path(request.getIcon_path())
+                    .build();
 
-        adminService.addHandicapMaster(master,auth_code);
-        return "OK";
+            adminService.addHandicapMaster(master, auth_code);
+            return NormalResponse.builder().result("OK").build();
+        } catch (JWTDecodeException | TokenExpiredException e) {
+            return NormalResponse.builder().result("NG").build();
+        }
     }
 
     @GetMapping("/hello")
