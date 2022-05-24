@@ -2,19 +2,11 @@ package org.microvolunteer.platform.controller;
 
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
-import org.microvolunteer.platform.api.client.LineMessageRestClient;
 import org.microvolunteer.platform.domain.resource.*;
 import org.microvolunteer.platform.domain.resource.request.*;
 import org.microvolunteer.platform.domain.resource.response.*;
-import org.microvolunteer.platform.domain.resource.snsmessage.LineLocationMessageRequest;
-import org.microvolunteer.platform.repository.dao.mapper.SnsRegisterMapper;
-import org.microvolunteer.platform.service.MatchingService;
-import org.microvolunteer.platform.service.SnsIdRegisterService;
-import org.microvolunteer.platform.service.TokenService;
-import org.microvolunteer.platform.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
@@ -25,31 +17,12 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
-import java.util.List;
 
 @CrossOrigin
 @Controller
 @RequestMapping("/v1")
 public class UIController {
     private Logger logger = LoggerFactory.getLogger(org.microvolunteer.platform.controller.Controller.class);
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private TokenService tokenService;
-
-    @Autowired
-    private MatchingService matchingService;
-
-    @Autowired
-    private SnsRegisterMapper snsRegisterMapper;
-
-    @Autowired
-    private LineMessageRestClient lineMessageRestClient;
-
-    @Autowired
-    private SnsIdRegisterService snsIdRegisterService;
 
     @Value("${backend-api.uri}")
     private String api_uri;
@@ -154,10 +127,6 @@ public class UIController {
     public String mypage(@CookieValue(value="_token", required=true) String token, Model model){
         logger.info("mypage API");
         try {
-            // cookieを設定
-            //Cookie cookie = new Cookie("_token",token);
-            //cookie.setPath("/");
-
             MyProfile myProfile = getMyProfile(token);
             model.addAttribute(myProfile);
             model.addAttribute(new HelpRequest());
@@ -179,7 +148,6 @@ public class UIController {
     public String add_handicap(@CookieValue(value="_token", required=true) String token, Model model){
         logger.info("add handicap API");
         try {
-            //String user_id = tokenService.getUserId(token);
             HandicapRegisterRequest handicapRegisterRequest = HandicapRegisterRequest.builder()
                     .build();
             model.addAttribute(handicapRegisterRequest);
@@ -255,10 +223,6 @@ public class UIController {
     public String default_handicap_register(@CookieValue(value="_token", required=true) String token, HandicapRegisterRequest registerRequest, Model model){
         logger.info("handicap register API");
         try {
-            // token check API
-            //String user_id = tokenService.getUserId(token);
-
-            //userService.registerHandicappedInfo(user_id,registerRequest);
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.add("Authorization", "Bearer " + token);
@@ -287,7 +251,6 @@ public class UIController {
         logger.info("listen API");
         try {
             // tokenからuser_idを取得
-            String user_id = tokenService.getUserId(token);
             if (tokenCheck(token)) {
                 throw new Exception("token error.");
             }
@@ -309,8 +272,6 @@ public class UIController {
     @PostMapping("/user/register")
     public String default_register(@CookieValue(value="_token", required=true) String token, RegisterUserRequest registerUserRequest,Model model){
         logger.info("default register API");
-        // tokenからuser_idを取得
-        String user_id;
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -463,7 +424,6 @@ public class UIController {
     @PostMapping("/matching/listen-signals")
     public String default_listen_signals(@CookieValue(value="_token", required=true) String token, ListenRequest listenRequest, Model model) {
         logger.info("listen-signals API");
-        String user_id;
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -589,14 +549,16 @@ public class UIController {
     public String getSupportEvaluation(@CookieValue(value="_token", required=true) String token, @PathVariable Integer help_id, Model model) {
         logger.info("support evaluation getAPI");
         try {
+            if (tokenCheck(token)) {
+                throw new Exception("token error.");
+            }
             // tokenからuser_idを取得
             // handicapped_idのhelp_idであるかどうかを確認
             ThanksRequest request = new ThanksRequest();
             request.setHelp_id(help_id);
             model.addAttribute("thanksRequest",request);
             return "support_evaluation";
-        } catch (JWTDecodeException | TokenExpiredException e) {
-            // invalid token, require login
+        } catch (Exception e) {
             model.addAttribute(new LoginRequest());
             return "login_form";
         }
@@ -618,10 +580,6 @@ public class UIController {
             // 現状のthanks listを取得する
             model.addAttribute("thanksList",getMyThanksList(token));
             return "my_thankslist";
-        } catch (JWTDecodeException | TokenExpiredException e) {
-            // invalid token, require login
-            model.addAttribute(new LoginRequest());
-            return "login_form";
         } catch (Exception e) {
             return "Error";
         }
