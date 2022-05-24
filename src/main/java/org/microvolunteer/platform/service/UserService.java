@@ -137,10 +137,10 @@ public class UserService {
     /**
      * 障害者の障害情報を取得
      * @param my_id
-     * @param handicap_id
+     * @param handicapinfo_id
      */
-    public MyHandicap getMyHandicap(String my_id, Integer handicap_id) {
-        MyHandicap handicap= handicapInfoMapper.getMyHandicap(my_id, handicap_id);
+    public MyHandicap getMyHandicap(String my_id, Integer handicapinfo_id) {
+        MyHandicap handicap= handicapInfoMapper.getMyHandicap(my_id, handicapinfo_id);
         return handicap;
     }
 
