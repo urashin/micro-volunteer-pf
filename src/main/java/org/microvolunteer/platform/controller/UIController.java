@@ -55,17 +55,22 @@ public class UIController {
     private String api_uri;
 
     @GetMapping("/user/register/{sns_id}")
-    public String register(@PathVariable String sns_id, Model model) {
+    public String register(HttpServletResponse response, @PathVariable String sns_id, Model model) {
         String api_url = api_uri + "/v1/api/user/register/" + sns_id;
         logger.info("sns register API");
         String token = "";
         try {
             RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<SnsRegisterResponse> response = restTemplate
+            ResponseEntity<SnsRegisterResponse> registerResponse = restTemplate
                     .exchange(api_url, HttpMethod.GET, null, SnsRegisterResponse.class);
-            SnsRegisterResponse body = response.getBody();
+            SnsRegisterResponse body = registerResponse.getBody();
             token = body.getToken();
             if (token.isEmpty()) throw new RestClientException("get token error.");
+
+            // cookieを設定
+            Cookie cookie = new Cookie("_token",token);
+            cookie.setPath("/");
+            response.addCookie(cookie);
 
             // modelに変数を設定
             RegisterUserRequest registerUserRequest = new RegisterUserRequest();
@@ -226,7 +231,7 @@ public class UIController {
             HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<MyProfileResponse> myProfileResponse = restTemplate
-                    .exchange(api_uri + "/v1/api/user/myprofile", HttpMethod.GET, requestEntity, MyProfileResponse.class);
+                    .exchange(api_uri + "/v1/api/user/myprofile", HttpMethod.POST, requestEntity, MyProfileResponse.class);
             MyProfileResponse body = myProfileResponse.getBody();
 
             // model 設定

@@ -40,7 +40,7 @@ public class Controller {
     /**
      * ログインAPI.
      */
-    @GetMapping("/user/login")
+    @PostMapping("/user/login")
     @ResponseBody
     @ApiOperation(value="login", notes="emailとpasswordでログインし、tokenを取得する")
     public LoginResponse app_login(@RequestBody LoginRequest loginRequest){
@@ -181,7 +181,7 @@ public class Controller {
         }
     }
 
-    @GetMapping("/user/myprofile")
+    @PostMapping("/user/myprofile")
     @ResponseBody
     @ApiOperation(value="My profile取得(共通)", notes="自分のprofile情報（ボランティア情報の要約と、登録してあるHelp情報一覧の取得")
     public MyProfileResponse getMyProfile(@RequestHeader(value="Authorization",required=true) String auth){
