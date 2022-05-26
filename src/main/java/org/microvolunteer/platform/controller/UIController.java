@@ -27,6 +27,9 @@ public class UIController {
     @Value("${backend-api.uri}")
     private String api_uri;
 
+    /*
+     * セキュリティ的な懸念があるため、要改善
+     */
     @GetMapping("/user/register/{sns_id}")
     public String register(HttpServletResponse response, @PathVariable String sns_id, Model model) {
         String api_url = api_uri + "/v1/api/user/register/" + sns_id;
@@ -34,9 +37,9 @@ public class UIController {
         String token = "";
         try {
             RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<SnsRegisterResponse> registerResponse = restTemplate
-                    .exchange(api_url, HttpMethod.GET, null, SnsRegisterResponse.class);
-            SnsRegisterResponse body = registerResponse.getBody();
+            ResponseEntity<SnsTokenResponse> registerResponse = restTemplate
+                    .exchange(api_url, HttpMethod.GET, null, SnsTokenResponse.class);
+            SnsTokenResponse body = registerResponse.getBody();
             token = body.getToken();
             if (token.isEmpty()) throw new RestClientException("get token error.");
 
@@ -293,37 +296,98 @@ public class UIController {
 
 
     /*
-     * 発出したhelpに対するLINEからのaccept
-     * セキュリティ的な懸念があるため、実装から一旦排除
+     * 支援済みのhelp_idに対するLINEからのthanks
+     * セキュリティ的な懸念があるため、要改善
      */
-    /*
     @GetMapping("/line_accept/{sns_id}/{help_id}")
     public String accept(@PathVariable String sns_id, @PathVariable Integer help_id) {
         logger.info("line_accept");
-        String user_id = tokenService.getUserIdBySnsId(sns_id);
-        matchingService.accept(help_id,user_id);
-        return "Accepted";
+        String token = "";
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<SnsTokenResponse> response = restTemplate
+                    .exchange(api_uri + "/v1/api/user/token/" + sns_id, HttpMethod.GET, requestEntity, SnsTokenResponse.class);
+            if (response.getBody().getResult() == "OK") {
+                token = response.getBody().getToken();
+            } else {
+                throw new Exception("get token error");
+            }
+        } catch (Exception e) {
+            return "Error";
+        }
+
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.add("Authorization", "Bearer " + token);
+            AcceptRequest acceptRequest = new AcceptRequest();
+            acceptRequest.setHelp_id(help_id);
+            HttpEntity<AcceptRequest> requestEntity = new HttpEntity<>(acceptRequest, headers);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<NormalResponse> response = restTemplate
+                    .exchange(api_uri + "/v1/api/matching/accept", HttpMethod.POST, requestEntity, NormalResponse.class);
+
+            if (response.getBody().getResult() != "OK") {
+                throw new Exception("accept error.");
+            }
+            return "Accepted";
+        } catch (Exception e) {
+            return "Error";
+        }
     }
-     */
 
     /*
      * helpに対するLINEからのaccept
-     * セキュリティ的な懸念があるため、実装から一旦排除
+     * セキュリティ的な懸念があるため、要改善
      */
-    /*
     @GetMapping("/line_thanks/{sns_id}/{help_id}/{satisfaction}")
     public String accept(@PathVariable String sns_id, @PathVariable Integer help_id, @PathVariable Integer satisfaction) {
         logger.info("line_thanks");
-        String handicapped_id = tokenService.getUserIdBySnsId(sns_id);
-        userService.thanks(help_id,handicapped_id,satisfaction);
-        return "Accepted";
+        String token = "";
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<SnsTokenResponse> response = restTemplate
+                    .exchange(api_uri + "/v1/api/user/token/" + sns_id, HttpMethod.GET, requestEntity, SnsTokenResponse.class);
+            if (response.getBody().getResult() == "OK") {
+                token = response.getBody().getToken();
+            } else {
+                throw new Exception("get token error");
+            }
+        } catch (Exception e) {
+            return "Error";
+        }
+
+        try {
+            // request作成
+            ThanksRequest request = new ThanksRequest();
+            request.setHelp_id(help_id);
+            request.setEvaluate(satisfaction);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.add("Authorization", "Bearer " + token);
+            HttpEntity<ThanksRequest> requestEntity = new HttpEntity<>(request,headers);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<NormalResponse> response = restTemplate
+                    .exchange(api_uri + "/v1/api/matching/thanks", HttpMethod.POST, requestEntity, NormalResponse.class);
+            if (response.getBody().getResult() != "OK") {
+                throw new Exception("thanks error.");
+            }
+            return "Accepted";
+        } catch (Exception e) {
+            return "Error";
+        }
     }
-     */
 
     @GetMapping("/user/history")
     public String volunteer_history(@CookieValue(value="_token", required=true) String token, Model model) {
         logger.info("history");
-        String volunteer_id;
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -552,8 +616,6 @@ public class UIController {
             if (tokenCheck(token)) {
                 throw new Exception("token error.");
             }
-            // tokenからuser_idを取得
-            // handicapped_idのhelp_idであるかどうかを確認
             ThanksRequest request = new ThanksRequest();
             request.setHelp_id(help_id);
             model.addAttribute("thanksRequest",request);

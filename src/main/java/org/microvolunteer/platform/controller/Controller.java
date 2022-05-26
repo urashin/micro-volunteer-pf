@@ -60,20 +60,40 @@ public class Controller {
      */
     @GetMapping("/user/register/{sns_id}")
     @ApiOperation(value="新規ユーザー登録(1) for LINE user", notes="LINEのuser idを用いた新規ユーザーユーザー登録")
-    public SnsRegisterResponse snsRegister(@PathVariable String sns_id){
+    public SnsTokenResponse snsRegister(@PathVariable String sns_id){
         logger.info("sns register API");
-        // 1) user_id を新規発行（個々の情報はパスワード設定など、個別に設定）
-        String user_id = userService.createUser();
+        try {
+            // 1) user_id を新規発行（個々の情報はパスワード設定など、個別に設定）
+            String user_id = userService.createUser();
 
-        // 2) session 管理のトークンを発行
-        String token = tokenService.createToken(user_id);
+            // 2) session 管理のトークンを発行
+            String token = tokenService.createToken(user_id);
 
-        // 3) SnsId tableにuser_id&sns_idのペアで登録し、紐付け完了
-        snsIdRegisterService.registerSnsId(sns_id,user_id, 1);
-        return SnsRegisterResponse.builder().token(token).build();
-        // Usersテーブルにuser_id & statusのみinsertする（他の要素はonetimeurl発行→登録
+            // 3) SnsId tableにuser_id&sns_idのペアで登録し、紐付け完了
+            snsIdRegisterService.registerSnsId(sns_id, user_id, 1);
+            return SnsTokenResponse.builder().token(token).result("OK").build();
+            // Usersテーブルにuser_id & statusのみinsertする（他の要素はonetimeurl発行→登録
+        } catch (Exception e) {
+            return SnsTokenResponse.builder().result("NG").build();
+        }
     }
 
+    /*
+     * sns_idからtokenを取得する
+     */
+    @GetMapping("/user/token/{sns_id}")
+    @ApiOperation(value="既存ユーザーのSNS ID: for LINE user", notes="登録済みLINEのuser idからtokenを生成する")
+    public SnsTokenResponse snsToken(@PathVariable String sns_id){
+        logger.info("get token API");
+        try {
+            String user_id = tokenService.getUserIdBySnsId(sns_id);
+            String token = tokenService.getTokenByUserId(user_id);
+            return SnsTokenResponse.builder().token(token).result("OK").build();
+        } catch (Exception e) {
+            logger.error("bad sns_id");
+            return SnsTokenResponse.builder().result("NG").build();
+        }
+    }
 
     @GetMapping("/user/tokencheck")
     @ResponseBody
@@ -279,10 +299,7 @@ public class Controller {
         try {
             logger.info("accept API");
             String user_id = tokenService.getUserId(tokenService.getTokenFromAuth(auth));
-            // Help発信場所と自分の位置情報から距離を計算するためMyGeometryを取得
-            //Location geo = matchingService.getMyGeometry(user_id);
             matchingService.accept(acceptRequest.getHelp_id(), user_id);
-            //HelpSignal helpSignal = matchingService.getHelpSignal(acceptRequest.getHelp_id(), geo.getX_geometry(), geo.getY_geometry());
             return NormalResponse.builder()
                     .result("OK")
                     .build();

@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SnsRegisterResponse {
+public class SnsTokenResponse {
     private String token;
+    private String result;
 }
