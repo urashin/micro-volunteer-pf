@@ -2,24 +2,21 @@ package org.microvolunteer.platform.controller;
 
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
-import org.microvolunteer.platform.api.client.LineMessageRestClient;
 import org.microvolunteer.platform.domain.resource.*;
 import org.microvolunteer.platform.domain.resource.request.*;
-import org.microvolunteer.platform.repository.dao.mapper.SnsRegisterMapper;
-import org.microvolunteer.platform.service.MatchingService;
-import org.microvolunteer.platform.service.SnsIdRegisterService;
-import org.microvolunteer.platform.service.TokenService;
-import org.microvolunteer.platform.service.UserService;
+import org.microvolunteer.platform.domain.resource.response.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
-import java.util.List;
 
 @CrossOrigin
 @Controller
@@ -27,422 +24,626 @@ import java.util.List;
 public class UIController {
     private Logger logger = LoggerFactory.getLogger(org.microvolunteer.platform.controller.Controller.class);
 
-    @Autowired
-    private UserService userService;
+    @Value("${backend-api.uri}")
+    private String api_uri;
 
-    @Autowired
-    private TokenService tokenService;
-
-    @Autowired
-    private MatchingService matchingService;
-
-    @Autowired
-    private SnsRegisterMapper snsRegisterMapper;
-
-    @Autowired
-    private LineMessageRestClient lineMessageRestClient;
-
-    @Autowired
-    private SnsIdRegisterService snsIdRegisterService;
-
+    /*
+     * セキュリティ的な懸念があるため、要改善
+     */
     @GetMapping("/user/register/{sns_id}")
-    public String register(@PathVariable String sns_id, Model model) {
+    public String register(HttpServletResponse response, @PathVariable String sns_id, Model model) {
+        String api_url = api_uri + "/v1/api/user/register/" + sns_id;
         logger.info("sns register API");
-        RegisterUserRequest registerUserRequest = new RegisterUserRequest();
-        // 1) user_id を新規発行（個々の情報はパスワード設定など、個別に設定）
-        String user_id = userService.createUser();
+        String token = "";
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<SnsTokenResponse> registerResponse = restTemplate
+                    .exchange(api_url, HttpMethod.GET, null, SnsTokenResponse.class);
+            SnsTokenResponse body = registerResponse.getBody();
+            token = body.getToken();
+            if (token.isEmpty()) throw new RestClientException("get token error.");
 
-        // 2) session 管理のトークンを発行
-        String token = tokenService.createToken(user_id);
-        registerUserRequest.setToken(token);
+            // cookieを設定
+            Cookie cookie = new Cookie("_token",token);
+            cookie.setPath("/");
+            response.addCookie(cookie);
 
-        // 3) SnsId tableにuser_id&sns_idのペアで登録し、紐付け完了
-        snsIdRegisterService.registerSnsId(sns_id,user_id, 1);
-
-        // 4) modelに変数を設定
-        model.addAttribute(registerUserRequest);
-        return "user_registration";
+            // modelに変数を設定
+            RegisterUserRequest registerUserRequest = new RegisterUserRequest();
+            model.addAttribute(registerUserRequest);
+            return "user_registration";
+        } catch (RestClientException e) {
+            logger.info("RestClient error : {}", e.toString());
+            return "error"; // error page遷移
+        }
     }
 
+    /*
+     * ログイン画面の表示
+     */
     @GetMapping("/user/login")
     public String login(@CookieValue(value="_token", required=false) String token, Model model) {
         logger.info("login");
-        if (token != null) {
-            // user_idの取得
-            String user_id;
+        if (token != null && tokenCheck(token)) {
+            // 有効なtokenがある場合は、profile画面を表示
             try {
-                // tokenからuser_idを取得
-                user_id = tokenService.getUserId(token);
-                // user_idをベースにした通常処理
-                MyProfile myProfile = userService.getMyProfile(user_id);
+                MyProfile myProfile = getMyProfile(token);
                 model.addAttribute(myProfile);
                 HelpRequest helpRequest = new HelpRequest();
                 model.addAttribute(helpRequest);
                 return "my_profile";
-            } catch (JWTDecodeException | TokenExpiredException e) {
-                logger.error("JWT decode failed or expired.");
-                // invalid token, require login
-                //model.addAttribute(new LoginRequest());
-                //return "login_form";
+            } catch (Exception e) {
+                logger.info("error : {}", e.toString());
+                return "error"; // error page遷移
             }
+        } else {
+            model.addAttribute(new LoginRequest());
+            return "login_form";
         }
-        model.addAttribute(new LoginRequest());
-        return "login_form";
     }
 
     /**
+     * ログイン後、mypageを表示
      * @param loginRequest
      * @return
      */
     @PostMapping("/user/mypage")
     public String default_login(HttpServletResponse response, LoginRequest loginRequest, Model model){
         logger.info("ログインAPI");
-        String user_id = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
-        if (user_id == null) {
-            model.addAttribute("loginRequest", new LoginRequest());
-            return "login_form";
-        }
-        String token = tokenService.getTokenByUserId(user_id);
-        Cookie cookie = new Cookie("_token",token);
-        cookie.setPath("/");
-        response.addCookie(cookie);
+        // api に置き換え
+        try {
+            // login & token取得
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<LoginRequest> loginRequestEntity = new HttpEntity<>(loginRequest,headers);
+            RestTemplate loginRestTemplate = new RestTemplate();
+            ResponseEntity<LoginResponse> loginResponse = loginRestTemplate
+                    .exchange(api_uri + "/v1/api/user/login", HttpMethod.POST, loginRequestEntity, LoginResponse.class);
+            String token = loginResponse.getBody().getToken();
+            if (token == null) {
+                model.addAttribute("loginRequest", new LoginRequest());
+                return "login_form";
+            }
 
-        MyProfile myProfile = userService.getMyProfile(user_id);
-        model.addAttribute(myProfile);
-        HelpRequest helpRequest = new HelpRequest();
-        model.addAttribute(helpRequest);
-        return "my_profile";
+            // cookieを設定
+            Cookie cookie = new Cookie("_token",token);
+            cookie.setPath("/");
+            response.addCookie(cookie);
+
+            MyProfile myProfile = getMyProfile(token);
+            // model 設定
+            model.addAttribute(myProfile);
+            model.addAttribute(new HelpRequest());
+            return "my_profile";
+        } catch (Exception e) {
+            logger.info("error : {}", e.toString());
+            return "error"; // error page遷移
+        }
     }
 
     /**
+     * myprofile画面の表示
      * @param token
      * @return
      */
     @GetMapping("/user/mypage")
     public String mypage(@CookieValue(value="_token", required=true) String token, Model model){
         logger.info("mypage API");
-        String user_id = "";
         try {
-            // tokenからuser_idを取得
-            user_id = tokenService.getUserId(token);
+            MyProfile myProfile = getMyProfile(token);
+            model.addAttribute(myProfile);
+            model.addAttribute(new HelpRequest());
+            return "my_profile";
+        } catch (RestClientException e) {
+            logger.info("RestClient error : {}", e.toString());
+            return "error"; // error page遷移
         } catch (JWTDecodeException | TokenExpiredException e) {
-            // invalid token, require login
+            logger.error("JWT decode failed or expired.");
             model.addAttribute(new LoginRequest());
             return "login_form";
+        } catch (Exception e) {
+            logger.info("error : {}", e.toString());
+            return "error"; // error page遷移
         }
-
-        MyProfile myProfile = userService.getMyProfile(user_id);
-        model.addAttribute(myProfile);
-        HelpRequest helpRequest = new HelpRequest();
-        model.addAttribute(helpRequest);
-        return "my_profile";
     }
 
     @GetMapping("/user/handicap/register")
     public String add_handicap(@CookieValue(value="_token", required=true) String token, Model model){
         logger.info("add handicap API");
         try {
-            // tokenからuser_idを取得
-            tokenService.getUserId(token);
-        } catch (JWTDecodeException | TokenExpiredException e) {
+            HandicapRegisterRequest handicapRegisterRequest = HandicapRegisterRequest.builder()
+                    .build();
+            model.addAttribute(handicapRegisterRequest);
+            return "handicap_form";
+        } catch (RestClientException e) {
             // invalid token, require login
+            model.addAttribute(new LoginRequest());
+            return "Error";
+        } catch (Exception e) {
             model.addAttribute(new LoginRequest());
             return "login_form";
         }
 
-        HandicapRegisterRequest handicapRegisterRequest = HandicapRegisterRequest.builder()
-                .token(token)
-                .build();
-        model.addAttribute(handicapRegisterRequest);
-        return "handicap_form";
+    }
+
+    /*
+     * tokenの有効性を確認する
+     */
+    private Boolean tokenCheck(String token) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.add("Authorization", "Bearer " + token);
+            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<NormalResponse> response = restTemplate
+                    .exchange(api_uri + "/v1/api/user/tokencheck", HttpMethod.GET, requestEntity, NormalResponse.class);
+            if ("NG" == response.getBody().getResult()) {
+                return false;
+            } else {
+                return true;
+            }
+        } catch (RestClientException e) {
+            // error message log
+            return false;
+        } catch (Exception e) {
+            // error message log
+            //unexpected error
+            return false;
+        }
+    }
+
+    private MyProfile getMyProfile(String token) throws RestClientException, JWTDecodeException, TokenExpiredException  {
+        try {
+            // MyProfileの取得
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.add("Authorization", "Bearer " + token);
+            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<MyProfileResponse> myProfileResponse = restTemplate
+                    .exchange(api_uri + "/v1/api/user/myprofile", HttpMethod.POST, requestEntity, MyProfileResponse.class);
+            MyProfileResponse body = myProfileResponse.getBody();
+
+            // model 設定
+            MyProfile myProfile = MyProfile.builder()
+                    .handicap_list(body.getHandicap_list())
+                    .volunteer_summary(body.getVolunteer_summary())
+                    .build();
+
+            // cookieを設定
+            Cookie cookie = new Cookie("_token",token);
+            cookie.setPath("/");
+
+            return myProfile;
+        } catch (RestClientException e) {
+            logger.info("getMyProfileAPI : RestClient error : {}", e.toString());
+            throw e;
+        }
     }
 
     @PostMapping("/user/handicap/register")
     public String default_handicap_register(@CookieValue(value="_token", required=true) String token, HandicapRegisterRequest registerRequest, Model model){
         logger.info("handicap register API");
-        String user_id;
         try {
-            // tokenからuser_idを取得
-            user_id = tokenService.getUserId(token);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.add("Authorization", "Bearer " + token);
+            HttpEntity<HandicapRegisterRequest> requestEntity = new HttpEntity<>(registerRequest,headers);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<HandicapRegisterResponse> response = restTemplate
+                    .exchange(api_uri + "/v1/api/user/handicap/register", HttpMethod.POST, requestEntity, HandicapRegisterResponse.class);
+            //String result = response.getBody().getResult();
+
+            MyProfile myProfile = getMyProfile(token);
+            model.addAttribute(myProfile);
+            model.addAttribute(new HelpRequest());
+            return "my_profile";
         } catch (JWTDecodeException | TokenExpiredException e) {
             // invalid token, require login
             model.addAttribute(new LoginRequest());
             return "login_form";
         }
-        userService.registerHandicappedInfo(user_id,registerRequest);
-        MyProfile myProfile = userService.getMyProfile(user_id);
-        model.addAttribute(myProfile);
-        HelpRequest helpRequest = new HelpRequest();
-        model.addAttribute(helpRequest);
-        return "my_profile";
     }
 
+    /*
+     * listen画面表示
+     */
     @GetMapping("/matching/listen")
     public String default_listen(@CookieValue(value="_token", required=true) String token, Model model){
         logger.info("listen API");
         try {
             // tokenからuser_idを取得
-            String user_id = tokenService.getUserId(token);
-        } catch (JWTDecodeException | TokenExpiredException e) {
+            if (tokenCheck(token)) {
+                throw new Exception("token error.");
+            }
+
+            ListenRequest listenRequest = ListenRequest.builder()
+                    .build();
+            model.addAttribute(listenRequest);
+            return "listen";
+        } catch (Exception e) {
             // invalid token, require login
             model.addAttribute(new LoginRequest());
             return "login_form";
         }
-        // listen_listをしゅとくする
-        ListenRequest listenRequest = ListenRequest.builder()
-                .token(token)
-                .build();
-        model.addAttribute(listenRequest);
-        return "listen";
     }
 
+    /*
+     * ユーザー登録
+     */
     @PostMapping("/user/register")
     public String default_register(@CookieValue(value="_token", required=true) String token, RegisterUserRequest registerUserRequest,Model model){
         logger.info("default register API");
-        // tokenからuser_idを取得
-        String user_id;
         try {
-            // tokenからuser_idを取得
-            user_id = tokenService.getUserId(token);
-        } catch (JWTDecodeException | TokenExpiredException e) {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.add("Authorization", "Bearer " + token);
+            HttpEntity<RegisterUserRequest> requestEntity = new HttpEntity<>(registerUserRequest,headers);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<RegisterUserResponse> response = restTemplate
+                    .exchange(api_uri + "/v1/api/user/register", HttpMethod.POST, requestEntity, RegisterUserResponse.class);
+            //String result = response.getBody().getResult();
+            // ログイン画面から登録したemail & passwordでログインしてもらう
+            model.addAttribute("loginRequest", new LoginRequest());
+            return "login_form";
+        } catch (Exception e) {
             // invalid token, require login
             model.addAttribute(new LoginRequest());
             return "login_form";
         }
-        userService.registerUserInfo(
-                user_id,
-                registerUserRequest.getName(),
-                registerUserRequest.getEmail(),
-                registerUserRequest.getPassword());
-        model.addAttribute("loginRequest", new LoginRequest());
-        return "login_form";
     }
 
 
+    /*
+     * 支援済みのhelp_idに対するLINEからのthanks
+     * セキュリティ的な懸念があるため、要改善
+     */
     @GetMapping("/line_accept/{sns_id}/{help_id}")
     public String accept(@PathVariable String sns_id, @PathVariable Integer help_id) {
         logger.info("line_accept");
-        String user_id = tokenService.getUserIdBySnsId(sns_id);
-        matchingService.accept(help_id,user_id);
-        return "Accepted";
+        String token = "";
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<SnsTokenResponse> response = restTemplate
+                    .exchange(api_uri + "/v1/api/user/token/" + sns_id, HttpMethod.GET, requestEntity, SnsTokenResponse.class);
+            if (response.getBody().getResult() == "OK") {
+                token = response.getBody().getToken();
+            } else {
+                throw new Exception("get token error");
+            }
+        } catch (Exception e) {
+            return "Error";
+        }
+
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.add("Authorization", "Bearer " + token);
+            AcceptRequest acceptRequest = new AcceptRequest();
+            acceptRequest.setHelp_id(help_id);
+            HttpEntity<AcceptRequest> requestEntity = new HttpEntity<>(acceptRequest, headers);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<NormalResponse> response = restTemplate
+                    .exchange(api_uri + "/v1/api/matching/accept", HttpMethod.POST, requestEntity, NormalResponse.class);
+
+            if (response.getBody().getResult() != "OK") {
+                throw new Exception("accept error.");
+            }
+            return "Accepted";
+        } catch (Exception e) {
+            return "Error";
+        }
     }
 
+    /*
+     * helpに対するLINEからのaccept
+     * セキュリティ的な懸念があるため、要改善
+     */
     @GetMapping("/line_thanks/{sns_id}/{help_id}/{satisfaction}")
     public String accept(@PathVariable String sns_id, @PathVariable Integer help_id, @PathVariable Integer satisfaction) {
         logger.info("line_thanks");
-        String handicapped_id = tokenService.getUserIdBySnsId(sns_id);
-        userService.thanks(help_id,handicapped_id,satisfaction);
-        return "Accepted";
+        String token = "";
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<SnsTokenResponse> response = restTemplate
+                    .exchange(api_uri + "/v1/api/user/token/" + sns_id, HttpMethod.GET, requestEntity, SnsTokenResponse.class);
+            if (response.getBody().getResult() == "OK") {
+                token = response.getBody().getToken();
+            } else {
+                throw new Exception("get token error");
+            }
+        } catch (Exception e) {
+            return "Error";
+        }
+
+        try {
+            // request作成
+            ThanksRequest request = new ThanksRequest();
+            request.setHelp_id(help_id);
+            request.setEvaluate(satisfaction);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.add("Authorization", "Bearer " + token);
+            HttpEntity<ThanksRequest> requestEntity = new HttpEntity<>(request,headers);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<NormalResponse> response = restTemplate
+                    .exchange(api_uri + "/v1/api/matching/thanks", HttpMethod.POST, requestEntity, NormalResponse.class);
+            if (response.getBody().getResult() != "OK") {
+                throw new Exception("thanks error.");
+            }
+            return "Accepted";
+        } catch (Exception e) {
+            return "Error";
+        }
     }
 
     @GetMapping("/user/history")
     public String volunteer_history(@CookieValue(value="_token", required=true) String token, Model model) {
         logger.info("history");
-        String volunteer_id;
         try {
-            // tokenからuser_idを取得
-            volunteer_id = tokenService.getUserId(token);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.add("Authorization", "Bearer " + token);
+            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<MyActivitiiesResponse> response = restTemplate
+                    .exchange(api_uri + "/v1/api/user/myactivities", HttpMethod.GET, requestEntity, MyActivitiiesResponse.class);
+            model.addAttribute("history", response.getBody().getMyActivityList());
+            return "my_history";
         } catch (JWTDecodeException | TokenExpiredException e) {
             // invalid token, require login
             model.addAttribute(new LoginRequest());
             return "login_form";
         }
-        List<MyActivity> history = userService.getMyActivities(volunteer_id, 10);
-        model.addAttribute("history", history);
-        return "my_history";
     }
 
+    private MyHandicap getMyHandicap(String token, Integer handicap_id) throws Exception {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.add("Authorization", "Bearer " + token);
+            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<MyHandicapResponse> response = restTemplate
+                    .exchange(api_uri + "/v1/api/user/handicap/" + handicap_id.toString(), HttpMethod.GET, requestEntity, MyHandicapResponse.class);
+
+            return response.getBody().getMyHandicap();
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    /*
+     * 困った時、Help発信対象のHandicapIDを指定し、Help発信画面を表示する。
+     */
     @GetMapping("/user/help/select/{handicap_id}")
     public String default_help_select(@CookieValue(value="_token", required=true) String token, @PathVariable Integer handicap_id, Model model) {
         logger.info("help_select api");
         try {
-            // tokenからuser_idを取得
-            tokenService.getUserId(token);
-        } catch (JWTDecodeException | TokenExpiredException e) {
+            model.addAttribute("myHandicap",getMyHandicap(token,handicap_id));
+            model.addAttribute("helpRequest",new HelpRequest());
+            return "help_call";
+        } catch (Exception e) {
             // invalid token, require login
             model.addAttribute(new LoginRequest());
             return "login_form";
         }
-        MyHandicap myHandicap = userService.getMyHandicap(handicap_id);
-
-        model.addAttribute(myHandicap);
-        HelpRequest helpRequest = new HelpRequest();
-        model.addAttribute(helpRequest);
-        return "help_call";
     }
 
     @PostMapping("/user/help/call")
     public String default_help_call(@CookieValue(value="_token", required=true) String token, HelpRequest helpRequest, Model model) {
         logger.info("help call API");
-        String user_id;
         try {
-            // tokenからuser_idを取得
-            user_id = tokenService.getUserId(token);
-        } catch (JWTDecodeException | TokenExpiredException e) {
-            // invalid token, require login
-            model.addAttribute(new LoginRequest());
-            return "login_form";
-        }
-        HandicapInfo handicapInfo = userService.getHandicappedInfo(helpRequest.getHandicapinfo_id());
-        try {
-            matchingService.help(user_id, helpRequest, handicapInfo);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.add("Authorization", "Bearer " + token);
+            HttpEntity<HelpRequest> requestEntity = new HttpEntity<>(helpRequest, headers);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<HelpResponse> response = restTemplate
+                    .exchange(api_uri + "/v1/api/matching/help", HttpMethod.POST, requestEntity, HelpResponse.class);
+
+            model.addAttribute("myHandicap",getMyHandicap(token,helpRequest.getHandicapinfo_id()));
+            return "help_wait";
         } catch (Exception e) {
             logger.error("help error.");
+            return "Error";
         }
 
-        MyHandicap myHandicap = userService.getMyHandicap(helpRequest.getHandicapinfo_id());
-
-        model.addAttribute(myHandicap);
-        CancelRequest cancelRequest = new CancelRequest();
-        model.addAttribute(cancelRequest);
-        return "help_wait";
     }
 
     @PostMapping("/user/help/cancel")
-    public String default_help_cancel(@CookieValue(value="_token", required=true) String token, CancelRequest cancelRequest, Model model) {
+    public String default_help_cancel(@CookieValue(value="_token", required=true) String token, Model model) {
         logger.info("help cancel API");
         String user_id;
         try {
-            // tokenからuser_idを取得
-            user_id = tokenService.getUserId(token);
-        } catch (JWTDecodeException | TokenExpiredException e) {
+            // check token
+
+            // cancel API
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.add("Authorization", "Bearer " + token);
+            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<NormalResponse> response = restTemplate
+                    .exchange(api_uri + "/v1/api/matching/cancel", HttpMethod.POST, requestEntity, NormalResponse.class);
+            model.addAttribute("myProfile",getMyProfile(token));
+            model.addAttribute("helpRequest",new HelpRequest());
+            return "my_profile";
+        } catch (Exception e) {
             // invalid token, require login
             model.addAttribute(new LoginRequest());
             return "login_form";
         }
-        try {
-            matchingService.help_cancel(user_id);
-        } catch (Exception e) {
-            logger.error("help cancel error.");
-        }
 
-        MyProfile myProfile = userService.getMyProfile(user_id);
-        model.addAttribute(myProfile);
-        HelpRequest helpRequest = new HelpRequest();
-        model.addAttribute(helpRequest);
-        return "my_profile";
     }
 
     @PostMapping("/matching/listen-signals")
     public String default_listen_signals(@CookieValue(value="_token", required=true) String token, ListenRequest listenRequest, Model model) {
         logger.info("listen-signals API");
-        String user_id;
         try {
-            // tokenからuser_idを取得
-            user_id = tokenService.getUserId(token);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.add("Authorization", "Bearer " + token);
+            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<ListenSignalsResponse> response = restTemplate
+                    .exchange(api_uri + "/v1/api/matching/listen-signals", HttpMethod.GET, requestEntity, ListenSignalsResponse.class);
+
+            SignalList signalList = SignalList.builder()
+                    .helpSignals(response.getBody().getHelpSignals())
+                    .build();
+
+            model.addAttribute("acceptRequest",new AcceptRequest());
+            model.addAttribute(signalList);
+            return "listen_signals";
         } catch (JWTDecodeException | TokenExpiredException e) {
             // invalid token, require login
             model.addAttribute(new LoginRequest());
             return "login_form";
         }
-        SignalList signalList = matchingService.getHelpSignals(user_id, listenRequest.getX_geometry(), listenRequest.getY_geometry());
-
-        AcceptRequest acceptRequest = new AcceptRequest();
-        model.addAttribute(acceptRequest);
-        model.addAttribute(signalList);
-        return "listen_signals";
     }
 
+    /*
+     * 特定のHelpSignalに対するaccept画面を表示する
+     */
     @GetMapping("/matching/accept/{help_id}")
     public String default_accept(@CookieValue(value="_token", required=true) String token, @PathVariable Integer help_id, Model model) {
-        logger.info("listen-signals API");
-        String user_id;
+        logger.info("accept API");
         try {
-            // tokenからuser_idを取得
-            user_id = tokenService.getUserId(token);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.add("Authorization", "Bearer " + token);
+            SignalRequest signalRequest = new SignalRequest();
+            signalRequest.setHelp_id(help_id);
+            HttpEntity<SignalRequest> requestEntity = new HttpEntity<>(signalRequest,headers);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<GetSignalResponse> response = restTemplate
+                    .exchange(api_uri + "/v1/api/matching/signal", HttpMethod.GET, requestEntity, GetSignalResponse.class);
+
+            model.addAttribute("acceptRequest",new AcceptRequest());
+            model.addAttribute("helpSignal",response.getBody().getHelpSignal());
+            return "accept";
         } catch (JWTDecodeException | TokenExpiredException e) {
             // invalid token, require login
             model.addAttribute(new LoginRequest());
             return "login_form";
         }
-
-        Location geo = matchingService.getMyGeometry(user_id);
-        HelpSignal helpSignal = matchingService.getHelpSignal(help_id,geo.getX_geometry(), geo.getY_geometry());
-
-        AcceptRequest acceptRequest = new AcceptRequest();
-        model.addAttribute(acceptRequest);
-        model.addAttribute(helpSignal);
-        return "accept";
     }
 
     @PostMapping("/matching/accept")
     public String default_accept_rush(@CookieValue(value="_token", required=true) String token, AcceptRequest acceptRequest, Model model) {
         logger.info("accept API");
-        String user_id;
         try {
-            // tokenからuser_idを取得
-            user_id = tokenService.getUserId(token);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.add("Authorization", "Bearer " + token);
+            HttpEntity<AcceptRequest> requestEntity = new HttpEntity<>(acceptRequest,headers);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<NormalResponse> response = restTemplate
+                    .exchange(api_uri + "/v1/api/matching/accept", HttpMethod.POST, requestEntity, NormalResponse.class);
+
+            if (response.getBody().getResult() != "OK") {
+                throw new Exception("accept error.");
+            }
+
+            SignalRequest signalRequest = new SignalRequest();
+            signalRequest.setHelp_id(acceptRequest.getHelp_id());
+            HttpEntity<SignalRequest> signalRequestEntity = new HttpEntity<>(signalRequest,headers);
+            RestTemplate signalRestTemplate = new RestTemplate();
+            ResponseEntity<GetSignalResponse> signalResponse = signalRestTemplate
+                    .exchange(api_uri + "/v1/api/matching/signal", HttpMethod.GET, requestEntity, GetSignalResponse.class);
+
+            // 自分がacceptしているsignalを取得し、表示する。
+            model.addAttribute(signalResponse.getBody().getHelpSignal());
+            return "rush";
         } catch (JWTDecodeException | TokenExpiredException e) {
             // invalid token, require login
             model.addAttribute(new LoginRequest());
             return "login_form";
+        } catch (Exception e) {
+            return "Error";
         }
-        Location geo = matchingService.getMyGeometry(user_id);
-        matchingService.accept(acceptRequest.getHelp_id(),user_id);
-        HelpSignal helpSignal = matchingService.getHelpSignal(acceptRequest.getHelp_id(),geo.getX_geometry(), geo.getY_geometry());
+    }
 
-        CancelRequest cancelRequest = new CancelRequest();
-        model.addAttribute(cancelRequest);
-        model.addAttribute(helpSignal);
-        return "rush";
+    private ThanksList getMyThanksList(String token) throws Exception {
+        logger.info("thanks list");
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.add("Authorization", "Bearer " + token);
+            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<ThanksListResponse> response = restTemplate
+                    .exchange(api_uri + "/v1/api/matching/thanks", HttpMethod.GET, requestEntity, ThanksListResponse.class);
+            if (response.getBody().getResult() != "OK") {
+                throw new Exception("thanks list error.");
+            }
+            return response.getBody().getThanksList();
+
+        } catch (Exception e) {
+            // invalid token, require login
+            throw e;
+        }
     }
 
     @GetMapping("/user/thanks_list")
     public String default_thanks_list(@CookieValue(value="_token", required=true) String token, Model model) {
         logger.info("thanks list");
-        // tokenからuser_idを取得
-        String handicapped_id;
         try {
-            // tokenからuser_idを取得
-            handicapped_id = tokenService.getUserId(token);
+            model.addAttribute("thanksList",getMyThanksList(token));
+            return "my_thankslist";
         } catch (JWTDecodeException | TokenExpiredException e) {
             // invalid token, require login
             model.addAttribute(new LoginRequest());
             return "login_form";
+        } catch (Exception e) {
+            return "Error";
         }
-
-        ThanksList thanksList = userService.getMyThanksList(handicapped_id, 10);
-        model.addAttribute(thanksList);
-        return "my_thankslist";
     }
 
     @GetMapping("/user/support_evaluation/{help_id}")
     public String getSupportEvaluation(@CookieValue(value="_token", required=true) String token, @PathVariable Integer help_id, Model model) {
         logger.info("support evaluation getAPI");
-        // tokenからuser_idを取得
-        String handicapped_id;
         try {
-            // tokenからuser_idを取得
-            handicapped_id = tokenService.getUserId(token);
-            // handicapped_idのhelp_idであるかどうかを確認
-        } catch (JWTDecodeException | TokenExpiredException e) {
-            // invalid token, require login
+            if (tokenCheck(token)) {
+                throw new Exception("token error.");
+            }
+            ThanksRequest request = new ThanksRequest();
+            request.setHelp_id(help_id);
+            model.addAttribute("thanksRequest",request);
+            return "support_evaluation";
+        } catch (Exception e) {
             model.addAttribute(new LoginRequest());
             return "login_form";
         }
-        SupportEvaluationRequest request = SupportEvaluationRequest.builder()
-                .help_id(help_id)
-                .build();
-        model.addAttribute(request);
-        return "support_evaluation";
     }
 
     @PostMapping("/user/support_evaluation")
-    public String postSupportEvaluation(@CookieValue(value="_token", required=true) String token, SupportEvaluationRequest request, Model model) {
+    public String postSupportEvaluation(@CookieValue(value="_token", required=true) String token, ThanksRequest request, Model model) {
         logger.info("support evaluation postAPI");
-        // tokenからuser_idを取得
-        String handicapped_id;
         try {
-            // tokenからuser_idを取得
-            handicapped_id = tokenService.getUserId(token);
-        } catch (JWTDecodeException | TokenExpiredException e) {
-            // invalid token, require login
-            model.addAttribute(new LoginRequest());
-            return "login_form";
+            // 評価：thanksを送る
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.add("Authorization", "Bearer " + token);
+            HttpEntity<ThanksRequest> requestEntity = new HttpEntity<>(request,headers);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<NormalResponse> response = restTemplate
+                    .exchange(api_uri + "/v1/api/matching/thanks", HttpMethod.POST, requestEntity, NormalResponse.class);
+
+            // 現状のthanks listを取得する
+            model.addAttribute("thanksList",getMyThanksList(token));
+            return "my_thankslist";
+        } catch (Exception e) {
+            return "Error";
         }
-        userService.thanks(request.getHelp_id(), handicapped_id, request.getSatisfaction());
-        ThanksList thanksList = userService.getMyThanksList(handicapped_id, 10);
-        model.addAttribute(thanksList);
-        return "my_thankslist";
     }
 }

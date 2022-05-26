@@ -83,7 +83,16 @@ public class TokenService {
         return this.createToken(user_id);
         //return tokenMapper.getTokenByUserId(user_id);
     }
+
     public String getUserIdBySnsId(String sns_id) {
         return snsRegisterMapper.getUserId(sns_id);
+    }
+
+    public String getTokenFromAuth(String auth) {
+        String[] split = auth.split(" ");
+        if (split.length != 2) {
+            return null;
+        }
+        return split[0].equals("Bearer") ? split[1] : null;
     }
 }

@@ -20,10 +20,10 @@
 </header>
 
 <div class="card_list">
-    <form th:action="@{/v1/user/support_evaluation}" method="post" th:object="${supportEvaluationRequest}" class="col s12">
+    <form th:action="@{/v1/user/support_evaluation}" method="post" th:object="${thanksRequest}" class="col s12">
         <div class="input-field col s12">
             <i>サポート結果はいかがでしたか？</i>
-            <select th:field="*{satisfaction}" id="handicap_type">
+            <select th:field="*{evaluate}" id="handicap_type">
                 <option value="" disabled selected>satisfaction</option>
                 <option value="5">とても満足[5]</option>
                 <option value="4">[4]</option>
@@ -41,7 +41,7 @@
         </div>
         <div class="input-field col s6" hidden>
             <i>help id</i>
-            <input th:field="*{help_id}" th:value="${supportEvaluationRequest.help_id}" id="help_id">
+            <input th:field="*{help_id}" th:value="${thanksRequest.help_id}" id="help_id">
         </div>
         <button class="btn waves-effect waves-light" type="submit" name="action">決定</button>
     </form>

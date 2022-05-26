@@ -4,11 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.microvolunteer.platform.domain.resource.HelpSignal;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class HandicapRegisterResponse {
-    private String result;
+public class GetSignalResponse {
+    private HelpSignal helpSignal;
 }

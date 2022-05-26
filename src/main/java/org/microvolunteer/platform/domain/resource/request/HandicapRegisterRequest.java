@@ -10,10 +10,6 @@ import javax.validation.constraints.Size;
 @Data
 @Builder
 public class HandicapRegisterRequest {
-    @NotNull
-    @Size(min=16, max=64)
-    private String token;
-
     @Positive
     private Integer handicap_type;
 

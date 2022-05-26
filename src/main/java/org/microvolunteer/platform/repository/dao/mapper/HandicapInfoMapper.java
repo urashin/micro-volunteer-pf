@@ -12,5 +12,5 @@ public interface HandicapInfoMapper {
     void registerHandicapInfo(RegisterHandicapInfo handicapInfo);
     HandicapInfo getHandicapInfo(Integer handicapinfo_id);
     List<MyHandicap> getHandicapList(String handicapped_id);
-    MyHandicap getHandicap(Integer handicap_id);
+    MyHandicap getMyHandicap(String my_id, Integer handicapinfo_id);
 }

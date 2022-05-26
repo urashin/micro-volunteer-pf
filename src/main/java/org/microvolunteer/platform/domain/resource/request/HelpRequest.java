@@ -8,10 +8,6 @@ import javax.validation.constraints.Size;
 
 @Data
 public class HelpRequest {
-    @NotNull
-    @Size(min=16, max=64)
-    private String token;
-
     private String x_geometry;
     private String y_geometry;
 

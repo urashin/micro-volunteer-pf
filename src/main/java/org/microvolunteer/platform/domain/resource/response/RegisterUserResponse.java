@@ -1,10 +1,14 @@
 package org.microvolunteer.platform.domain.resource.response;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-public class UserRegisterResponse {
+@NoArgsConstructor
+@AllArgsConstructor
+public class RegisterUserResponse {
     private String result;
 }

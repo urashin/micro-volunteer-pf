@@ -48,7 +48,6 @@
                     <input name="help_id" th:value="${helpSignal.help_id}">
                     <input name="y_geometry" th:value="35.7107654">
                     <input name="x_geometry" th:value="139.795978">
-                    <input name="token" th:value="${token}">
                 </div>
                 <button class="btn waves-effect waves-light btn-small" type="submit" name="action">accept
                     <i class="material-icons right">directions_run</i>
@@ -57,7 +56,7 @@
         </form>
     </ul>
     <div align="center">
-    <a class="btn-floating btn-large waves-effect waves-light red" th:href="@{/v1/user/mypage/{token}(token=${token})}" method="get"><i class="material-icons">clear</i></a>
+    <a class="btn-floating btn-large waves-effect waves-light red" th:href="/v1/user/mypage" method="get"><i class="material-icons">clear</i></a>
     </div>
 </div>
 <script>
