@@ -1,5 +1,6 @@
 package org.microvolunteer.platform.service;
 
+import org.microvolunteer.platform.api.client.LineLoginRestClient;
 import org.microvolunteer.platform.controller.Controller;
 import org.microvolunteer.platform.domain.dto.ActivityDto;
 import org.microvolunteer.platform.domain.resource.request.HandicapRegisterRequest;
@@ -34,6 +35,9 @@ public class UserService {
 
     @Autowired
     private MatchingService matchingService;
+
+    @Autowired
+    private LineLoginRestClient lineLoginRestClient;
 
     @Value("${encrypt.volunteerdb.key}")
     private String encrypt_key;
@@ -208,5 +212,10 @@ public class UserService {
                 .done_list(done_list)
                 .build();
         return thanksList;
+    }
+
+    public String lineAuth(String code) {
+        String id_token = lineLoginRestClient.lineAuth(code);
+        return id_token;
     }
 }

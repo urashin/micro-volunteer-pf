@@ -38,6 +38,35 @@ public class Controller {
     private AdminService adminService;
 
     /**
+     * LINE ログイン
+     */
+    @PostMapping("/user/line-login")
+    @ResponseBody
+    public LoginResponse line_login(@RequestBody LineLoginRequest lineLoginRequest){
+        /*
+        logger.info("LINE Login API");
+        String user_id = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
+        String token = tokenService.createToken(user_id);
+         */
+        String token = "";
+        return LoginResponse.builder().token(token).build();
+    }
+
+    /**
+     * LINE Auth
+     */
+    @GetMapping("/auth")
+    @ResponseBody
+    public LoginResponse line_auth(@RequestParam("code") String code){
+        logger.info("LINE Auth API");
+        String line_token = userService.lineAuth(code);
+        String token = line_token;
+        //String user_id = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
+        //String token = tokenService.createToken(user_id);
+        return LoginResponse.builder().token(token).build();
+    }
+
+    /**
      * ログインAPI.
      */
     @PostMapping("/user/login")
