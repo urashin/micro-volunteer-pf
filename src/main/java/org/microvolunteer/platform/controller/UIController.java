@@ -27,6 +27,59 @@ public class UIController {
     @Value("${backend-api.uri}")
     private String api_uri;
 
+    /**
+     * LINE ログイン
+     */
+    @GetMapping("/user/line-login")
+    @ResponseBody
+    public String linelogin() {
+        String api_url = api_uri + "/v1/api/user/line-login";
+        logger.info("line login API");
+        String token = "";
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<SnsTokenResponse> registerResponse = restTemplate
+                    .exchange(api_url, HttpMethod.GET, null, SnsTokenResponse.class);
+            return "user_registration";
+        } catch (RestClientException e) {
+            logger.info("RestClient error : {}", e.toString());
+            return "error"; // error page遷移
+        }
+    }
+
+    /**
+     * LINE Auth
+     */
+    @GetMapping("/auth")
+    @ResponseBody
+    public String line_auth(HttpServletResponse response, @RequestParam("code") String code, Model model){
+        logger.info("LINE Auth API");
+        String api_url = api_uri + "/v1/api/user/auth&code=" + code;
+        logger.info("sns register API");
+        String token = "";
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<LineTokenResponse> registerResponse = restTemplate
+                    .exchange(api_url, HttpMethod.GET, null, LineTokenResponse.class);
+            LineTokenResponse body = registerResponse.getBody();
+            token = body.getId_token();
+            if (token.isEmpty()) throw new RestClientException("get token error.");
+
+            // cookieを設定
+            Cookie cookie = new Cookie("_token",token);
+            cookie.setPath("/");
+            response.addCookie(cookie);
+
+            // modelに変数を設定
+            RegisterUserRequest registerUserRequest = new RegisterUserRequest();
+            model.addAttribute(registerUserRequest);
+            return "user_registration";
+        } catch (RestClientException e) {
+            logger.info("RestClient error : {}", e.toString());
+            return "error"; // error page遷移
+        }
+    }
+
     /*
      * セキュリティ的な懸念があるため、要改善
      */

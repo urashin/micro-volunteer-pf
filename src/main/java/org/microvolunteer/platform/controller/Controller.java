@@ -40,16 +40,11 @@ public class Controller {
     /**
      * LINE ログイン
      */
-    @PostMapping("/user/line-login")
+    @GetMapping("/user/line-login")
     @ResponseBody
-    public LoginResponse line_login(@RequestBody LineLoginRequest lineLoginRequest){
-        /*
-        logger.info("LINE Login API");
-        String user_id = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
-        String token = tokenService.createToken(user_id);
-         */
-        String token = "";
-        return LoginResponse.builder().token(token).build();
+    public NormalResponse line_login() {
+        userService.lineLogin();
+        return NormalResponse.builder().result("OK").build();
     }
 
     /**

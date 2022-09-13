@@ -218,4 +218,8 @@ public class UserService {
         String id_token = lineLoginRestClient.lineAuth(code);
         return id_token;
     }
+
+    public void lineLogin() {
+        lineLoginRestClient.lineLogin();
+    }
 }
