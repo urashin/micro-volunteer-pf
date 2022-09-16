@@ -18,6 +18,7 @@ backend-api:
 
 encrypt:
   jwt:
+    expire: 5184000
     secret: '任意の暗号化キーに置き換えてください'
   volunteerdb:
     key: '任意の暗号化キーに置き換えてください'
