@@ -27,24 +27,22 @@ public class UIController {
     @Value("${backend-api.uri}")
     private String api_uri;
 
-    /**
-     * LINE ログイン
-     */
+    @Value("${line-login.client_id}")
+    private String client_id;
+
+    @Value("${line-login.client_secret}")
+    private String client_secret;
+
+    @Value("${line-login.login_redirect_uri}")
+    private String login_redirect_uri;
+
     @GetMapping("/user/line-login")
     @ResponseBody
-    public String linelogin() {
-        String api_url = api_uri + "/v1/api/user/line-login";
+    public void linelogin(HttpServletResponse httpServletResponse) {
         logger.info("line login API");
-        String token = "";
-        try {
-            RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<SnsTokenResponse> registerResponse = restTemplate
-                    .exchange(api_url, HttpMethod.GET, null, SnsTokenResponse.class);
-            return "user_registration";
-        } catch (RestClientException e) {
-            logger.info("RestClient error : {}", e.toString());
-            return "error"; // error page遷移
-        }
+        String redirect_url = "https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=" + client_id + "&redirect_uri=" + login_redirect_uri + "&state=1&scope=openid%20profile";
+        httpServletResponse.setHeader("Location", redirect_url);
+        httpServletResponse.setStatus(302);
     }
 
     /**
@@ -54,15 +52,35 @@ public class UIController {
     @ResponseBody
     public String line_auth(HttpServletResponse response, @RequestParam("code") String code, Model model){
         logger.info("LINE Auth API");
-        String api_url = api_uri + "/v1/api/user/auth&code=" + code;
+        String api_url = api_uri + "/v1/api/auth?code=" + code;
         logger.info("sns register API");
-        String token = "";
+        String lineId = ""; // LINE user ID
+        /*
+         * LINE APIを使用してLINE user IDを取得する。
+         */
         try {
             RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<LineTokenResponse> registerResponse = restTemplate
-                    .exchange(api_url, HttpMethod.GET, null, LineTokenResponse.class);
-            LineTokenResponse body = registerResponse.getBody();
-            token = body.getId_token();
+            ResponseEntity<LoginResponse> registerResponse = restTemplate
+                    .exchange(api_url, HttpMethod.GET, null, LoginResponse.class);
+            // get LINE user ID
+            lineId = registerResponse.getBody().getToken();
+            if (lineId.isEmpty()) throw new RestClientException("get lineId error.");
+        } catch (RestClientException e) {
+            logger.info("RestClient error : {}", e.toString());
+            return "error"; // error page遷移
+        }
+
+
+        /*
+         * このシステムへの登録を行う
+         */
+        api_url = api_uri + "/v1/api/user/register/" + lineId;
+        logger.info("sns register API");
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<SnsTokenResponse> registerResponse = restTemplate
+                    .exchange(api_url, HttpMethod.GET, null, SnsTokenResponse.class);
+            String token = registerResponse.getBody().getToken();
             if (token.isEmpty()) throw new RestClientException("get token error.");
 
             // cookieを設定
@@ -73,6 +91,7 @@ public class UIController {
             // modelに変数を設定
             RegisterUserRequest registerUserRequest = new RegisterUserRequest();
             model.addAttribute(registerUserRequest);
+            //response.setHeader("Location", api_uri + "/v1/user/");
             return "user_registration";
         } catch (RestClientException e) {
             logger.info("RestClient error : {}", e.toString());

@@ -1,13 +1,23 @@
 line-message:
-  api_uri: "http://micro-volunteer-supporter.com:8000/v1/sns/send-request-volunteer"
-  accept_button_uri: "http://micro-volunteer-supporter.com"
-  ignore_button_uri: "http://micro-volunteer-supporter.com"
+  send_flg: (0: LINE通知を送らない/ 1: LINE通知を送る)
+  api_uri: (LINE通知API)
+  accept_button_uri: (Acceptボタンが押された場合の遷移先ベースURL）
+  ignore_button_uri: (Ignoreボタンが押された場合の遷移先ベースURL）
   accept_button_label: "いま行きます！"
   ignore_button_label: "今は無理"
 
+line-login:
+  client_id: (LINE Developers Channel ID)
+  client_secret: (LINE Developers Channel secret)
+  line_token_url: "https://api.line.me/oauth2/v2.1/token"
+  line_login_url: "https://access.line.me/oauth2/v2.1/authorize?response_type={response_type}&client_id={client_id}&redirect_uri={redirect_uri}&state={state}&scope={scope}"
+  login_redirect_uri: "http://127.0.0.1:8080/v1/auth"
+
+backend-api:
+  uri: "http://localhost:8080"
+
 encrypt:
   jwt:
-    secret: 'MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAPfawZ1qJkJP2j+17nI38xgH9KQPFD1GnMfraazWsbTqlIgHCxcRezJX7G5sJfasitrwkbLv29BB4kvwN+vMro0CAwEAAQ=='
-    expire: 5184000
+    secret: '任意の暗号化キーに置き換えてください'
   volunteerdb:
-    key: 'MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAPfawZ1qJkJP2j+17nI38xgH9KQPFD1GnMfraazWsbTqlIgHCxcRezJX7G5sJfasitrwkbLv29BB4kvwN+vMro0CAwEAAQ=='
+    key: '任意の暗号化キーに置き換えてください'

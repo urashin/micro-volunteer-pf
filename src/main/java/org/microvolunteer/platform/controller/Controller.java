@@ -42,9 +42,10 @@ public class Controller {
      */
     @GetMapping("/user/line-login")
     @ResponseBody
-    public NormalResponse line_login() {
-        userService.lineLogin();
-        return NormalResponse.builder().result("OK").build();
+    public String line_login() {
+        //userService.lineLogin();
+        String redirect = "redirect:" + "https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=1657460430&redirect_uri=http://127.0.0.1:8080/v1/api/auth&state=1&scope=openid%20profile";
+        return redirect;
     }
 
     /**
@@ -54,11 +55,9 @@ public class Controller {
     @ResponseBody
     public LoginResponse line_auth(@RequestParam("code") String code){
         logger.info("LINE Auth API");
-        String line_token = userService.lineAuth(code);
-        String token = line_token;
-        //String user_id = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
-        //String token = tokenService.createToken(user_id);
-        return LoginResponse.builder().token(token).build();
+        String lineIdToken= userService.lineAuth(code);
+        String userId = tokenService.getSnsIdFromLineToken(lineIdToken);
+        return LoginResponse.builder().token(userId).build();
     }
 
     /**
