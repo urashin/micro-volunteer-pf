@@ -14,6 +14,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
@@ -49,7 +50,6 @@ public class UIController {
      * LINE Auth
      */
     @GetMapping("/auth")
-    @ResponseBody
     public String line_auth(HttpServletResponse response, @RequestParam("code") String code, Model model){
         logger.info("LINE Auth API");
         String api_url = api_uri + "/v1/api/auth?code=" + code;
@@ -98,6 +98,7 @@ public class UIController {
             return "error"; // error page遷移
         }
     }
+
 
     /*
      * セキュリティ的な懸念があるため、要改善
