@@ -14,6 +14,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
@@ -26,6 +27,78 @@ public class UIController {
 
     @Value("${backend-api.uri}")
     private String api_uri;
+
+    @Value("${line-login.client_id}")
+    private String client_id;
+
+    @Value("${line-login.client_secret}")
+    private String client_secret;
+
+    @Value("${line-login.login_redirect_uri}")
+    private String login_redirect_uri;
+
+    @GetMapping("/user/line-login")
+    @ResponseBody
+    public void linelogin(HttpServletResponse httpServletResponse) {
+        logger.info("line login API");
+        String redirect_url = "https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=" + client_id + "&redirect_uri=" + login_redirect_uri + "&state=1&scope=openid%20profile";
+        httpServletResponse.setHeader("Location", redirect_url);
+        httpServletResponse.setStatus(302);
+    }
+
+    /**
+     * LINE Auth
+     */
+    @GetMapping("/auth")
+    public String line_auth(HttpServletResponse response, @RequestParam("code") String code, Model model){
+        logger.info("LINE Auth API");
+        String api_url = api_uri + "/v1/api/auth?code=" + code;
+        logger.info("sns register API");
+        String lineId = ""; // LINE user ID
+        /*
+         * LINE APIを使用してLINE user IDを取得する。
+         */
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<LoginResponse> registerResponse = restTemplate
+                    .exchange(api_url, HttpMethod.GET, null, LoginResponse.class);
+            // get LINE user ID
+            lineId = registerResponse.getBody().getToken();
+            if (lineId.isEmpty()) throw new RestClientException("get lineId error.");
+        } catch (RestClientException e) {
+            logger.info("RestClient error : {}", e.toString());
+            return "error"; // error page遷移
+        }
+
+
+        /*
+         * このシステムへの登録を行う
+         */
+        api_url = api_uri + "/v1/api/user/register/" + lineId;
+        logger.info("sns register API");
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<SnsTokenResponse> registerResponse = restTemplate
+                    .exchange(api_url, HttpMethod.GET, null, SnsTokenResponse.class);
+            String token = registerResponse.getBody().getToken();
+            if (token.isEmpty()) throw new RestClientException("get token error.");
+
+            // cookieを設定
+            Cookie cookie = new Cookie("_token",token);
+            cookie.setPath("/");
+            response.addCookie(cookie);
+
+            // modelに変数を設定
+            RegisterUserRequest registerUserRequest = new RegisterUserRequest();
+            model.addAttribute(registerUserRequest);
+            //response.setHeader("Location", api_uri + "/v1/user/");
+            return "user_registration";
+        } catch (RestClientException e) {
+            logger.info("RestClient error : {}", e.toString());
+            return "error"; // error page遷移
+        }
+    }
+
 
     /*
      * セキュリティ的な懸念があるため、要改善

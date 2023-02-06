@@ -28,6 +28,9 @@ public class TokenService {
     @Autowired
     private SnsRegisterMapper snsRegisterMapper;
 
+    @Value("${line-login.client_secret}")
+    private String client_secret;
+
     @Value("${encrypt.jwt.secret}")
     private String jwt_secret;
 
@@ -82,6 +85,33 @@ public class TokenService {
     public String getTokenByUserId(String user_id) {
         return this.createToken(user_id);
         //return tokenMapper.getTokenByUserId(user_id);
+    }
+
+    public String getSnsIdFromLineToken(String idToken) {
+        String user_id = null;
+        try {
+            // 期限&改竄チェック
+            Algorithm algorithm = Algorithm.HMAC256(client_secret);
+            JWTVerifier verifier = JWT.require(algorithm)
+                    .withIssuer("https://access.line.me")
+                    .build();
+            DecodedJWT jwt = verifier.verify(idToken);
+            // decodeしてuser_idを取得する
+            String sub = jwt.getClaim("sub").asString();
+            String name = jwt.getClaim("name").asString();
+            //String exp = jwt.getClaim("exp").asString();
+            user_id = sub;
+        } catch (JWTDecodeException exception){
+            logger.error("Invalid token");
+            throw exception;
+            //Invalid token
+            //return null;
+        } catch (TokenExpiredException exception) {
+            logger.error("Token expired");
+            throw exception;
+            //return null;
+        }
+        return user_id;
     }
 
     public String getUserIdBySnsId(String sns_id) {

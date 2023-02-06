@@ -39,6 +39,9 @@ public class LineMessageRestClient {
     @Value("${line-message.ignore_button_label}")
     private String ignore_button_label;
 
+    @Value("${line-message.send_flg}")
+    private Integer send_flg;
+
     public void requestHelp(String sns_id, NeighborDistance neighborDistance, HandicapInfo handicapInfo) {
         RestTemplate restTemplate = new RestTemplate();
 
@@ -171,7 +174,9 @@ public class LineMessageRestClient {
                     .accept(MediaType.APPLICATION_JSON)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(lineLocationMessage);
-            //ResponseEntity<LineLocationMessageResponse> response = restTemplate.exchange(request, LineLocationMessageResponse.class);
+            if (send_flg == 1) {
+                ResponseEntity<LineLocationMessageResponse> response = restTemplate.exchange(request, LineLocationMessageResponse.class);
+            }
         } catch (RestClientException e) {
             logger.info("RestClient error : {}", e.toString());
         }
